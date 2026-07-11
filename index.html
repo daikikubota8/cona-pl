@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>店舗PL管理ダッシュボード | CONA / ナポリマン</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f7f5f1;
+    --surface:#ffffff;
+    --surface2:#f1eee7;
+    --line:#e1ddd3;
+    --wine:#8b2635;
+    --wine-light:#a8324a;
+    --tomato:#c1440e;
+    --tomato-light:#b8410f;
+    --gold:#a9791b;
+    --text:#262320;
+    --text-dim:#6b6558;
+    --good:#2f7a4f;
+    --bad:#b8410f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .font-display{font-family:'Fraunces',serif;}
+  .font-mono{font-family:'IBM Plex Mono',monospace;}
+  .surface{background:var(--surface); border:1px solid var(--line); box-shadow:0 1px 3px rgba(38,35,32,.05);}
+  .surface2{background:var(--surface2); border:1px solid var(--line);}
+  .rack-divider{
+    background-image:repeating-linear-gradient(90deg, var(--line) 0px, var(--line) 1px, transparent 1px, transparent 14px);
+    height:1px;
+  }
+  ::-webkit-scrollbar{height:8px; width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  .tab-btn{
+    position:relative; padding:.6rem 1.1rem; border-radius:.6rem; font-weight:600; font-size:.9rem;
+    color:var(--text-dim); transition:all .15s ease; cursor:pointer; white-space:nowrap;
+  }
+  .tab-btn:hover{color:var(--text); background:var(--surface2);}
+  .tab-btn.active{color:#fff;}
+  .tab-btn.active[data-brand="overview"]{background:var(--gold); color:#14171c;}
+  .tab-btn.active[data-brand="CONA"]{background:var(--wine);}
+  .tab-btn.active[data-brand="NAPOLIMAN"]{background:var(--tomato);}
+  input[type="text"], input[type="number"], input[type="month"], select{
+    background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    border-radius:.5rem; padding:.5rem .7rem; font-size:.875rem; width:100%;
+    outline:none; transition:border-color .15s;
+  }
+  input:focus, select:focus{border-color:var(--gold);}
+  input::placeholder{color:#a39c8c;}
+  .sim-slider{
+    -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:999px;
+    background:var(--surface2); accent-color:var(--gold); cursor:pointer;
+  }
+  .sim-slider::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:50%;
+    background:var(--gold); border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,.25); cursor:pointer;
+  }
+  .sim-slider::-moz-range-thumb{
+    width:18px; height:18px; border-radius:50%; background:var(--gold); border:2px solid #fff; cursor:pointer;
+  }
+  .pill{
+    padding:.4rem .9rem; border-radius:999px; font-size:.82rem; font-weight:600;
+    border:1px solid var(--line); color:var(--text-dim); cursor:pointer; transition:all .15s; white-space:nowrap;
+  }
+  .pill:hover{border-color:var(--gold); color:var(--text);}
+  .pill.selected-CONA{background:var(--wine); color:#fff; border-color:var(--wine);}
+  .pill.selected-NAPOLIMAN{background:var(--tomato); color:#fff; border-color:var(--tomato);}
+  .badge-high{background:rgba(184,65,15,.1); color:var(--tomato-light); border:1px solid rgba(184,65,15,.3);}
+  .badge-mid{background:rgba(169,121,27,.12); color:var(--gold); border:1px solid rgba(169,121,27,.35);}
+  .btn-primary{
+    background:var(--gold); color:#fff; font-weight:700; padding:.6rem 1.2rem; border-radius:.6rem;
+    font-size:.875rem; transition:filter .15s; cursor:pointer; border:none;
+  }
+  .btn-primary:hover{filter:brightness(1.08);}
+  .btn-ghost{
+    background:transparent; color:var(--text-dim); font-weight:600; padding:.5rem .9rem; border-radius:.5rem;
+    font-size:.82rem; border:1px solid var(--line); cursor:pointer; transition:all .15s;
+  }
+  .btn-ghost:hover{color:var(--text); border-color:var(--text-dim);}
+  table{width:100%; border-collapse:collapse; font-size:.83rem;}
+  th, td{padding:.55rem .7rem; text-align:right; white-space:nowrap;}
+  th{color:var(--text-dim); font-weight:600; text-align:right; border-bottom:1px solid var(--line);}
+  th:first-child, td:first-child{text-align:left; position:sticky; left:0; background:var(--surface); }
+  tbody tr:not(:last-child) td{border-bottom:1px solid var(--line);}
+  .up{color:var(--good);}
+  .down{color:var(--bad);}
+  .fade-in{animation:fadeIn .25s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+  @media (prefers-reduced-motion: reduce){ .fade-in{animation:none;} }
+</style>
+</head>
+<body class="min-h-screen">
+
+<header class="sticky top-0 z-30 backdrop-blur" style="background:rgba(247,245,241,.92); border-bottom:1px solid var(--line);">
+  <div class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
+    <div>
+      <p class="text-xs tracking-widest uppercase" style="color:var(--gold);">Store P/L Monitor</p>
+      <h1 class="font-display text-2xl leading-tight">店舗PL管理ダッシュボード</h1>
+    </div>
+    <nav class="flex gap-2 flex-wrap" id="main-tabs">
+      <div class="tab-btn active" data-action="switch-tab" data-brand="overview">総評</div>
+      <div class="tab-btn" data-action="switch-tab" data-brand="CONA">CONA</div>
+      <div class="tab-btn" data-action="switch-tab" data-brand="NAPOLIMAN">ナポリマン</div>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-5 py-8" id="app-root"></main>
+
+<footer class="max-w-6xl mx-auto px-5 py-6 text-xs" style="color:var(--text-dim);">
+  <div class="rack-divider mb-4"></div>
+  <div class="flex justify-between flex-wrap gap-2">
+    <span>データはこの端末のブラウザ内（LocalStorage）に保存されています。</span>
+    <button class="underline hover:text-white" data-action="reset-data">全データを削除</button>
+  </div>
+</footer>
+
+<script>
+/* ============================= 定数・データモデル ============================= */
+const STORAGE_KEY = 'pl_monitor_v1';
+const RATE_THRESHOLD = 7;     // 絶対値項目（売上・費用・利益）の変動率アラート閾値(%)
+const RATIO_THRESHOLD = 2;    // 比率項目（食材費率・人件費率）の変動幅アラート閾値(ポイント)
+
+const METRIC_LABELS = { sales:'売上', food:'食材費', labor:'人件費', rent:'家賃', other:'その他経費', profit:'利益' };
+const COST_KEYS = ['food','labor','rent','other'];
+const BRAND_META = {
+  CONA:       { label:'CONA',       accent:'var(--wine)',   accentLight:'var(--wine-light)' },
+  NAPOLIMAN:  { label:'ナポリマン', accent:'var(--tomato)', accentLight:'var(--tomato-light)' },
+};
+
+const APRIL_2026_CONA = {"上野": {"sales": 8980198, "food": 2407328, "labor": 2462491, "rent": 641870, "other": 1534946}, "川崎": {"sales": 14521507, "food": 3840646, "labor": 3559643, "rent": 910560, "other": 1822110}, "新宿歌舞伎町": {"sales": 10734450, "food": 2740728, "labor": 2836637, "rent": 958900, "other": 1589732}, "所沢": {"sales": 7786677, "food": 2109686, "labor": 2183699, "rent": 730000, "other": 1081789}, "大宮": {"sales": 14865230, "food": 4012530, "labor": 3767097, "rent": 1320000, "other": 1611082}, "渋谷宇田川町": {"sales": 9276585, "food": 2344213, "labor": 2535311, "rent": 960000, "other": 1744460}, "蒲田": {"sales": 9771752, "food": 2767813, "labor": 2209547, "rent": 480000, "other": 1570823}, "立川": {"sales": 9967425, "food": 2724785, "labor": 3186363, "rent": 990090, "other": 1481549}, "横浜鶴屋町": {"sales": 13906053, "food": 3883125, "labor": 3083651, "rent": 900000, "other": 2156234}, "船橋": {"sales": 11706506, "food": 3070844, "labor": 3215209, "rent": 1648000, "other": 1367620}, "溝の口": {"sales": 8294178, "food": 2255289, "labor": 2395912, "rent": 440000, "other": 1085281}, "錦糸町": {"sales": 10356096, "food": 2788334, "labor": 2844295, "rent": 800000, "other": 1486125}, "恵比寿": {"sales": 4344079, "food": 1243236, "labor": 1299710, "rent": 350000, "other": 940092}, "たまプラーザ": {"sales": 8856211, "food": 2644447, "labor": 2253952, "rent": 433000, "other": 1775165}, "麻布十番": {"sales": 5873375, "food": 1732443, "labor": 1958048, "rent": 591600, "other": 1037101}, "柏": {"sales": 9775911, "food": 2615082, "labor": 2405078, "rent": 503900, "other": 1461914}, "津田沼": {"sales": 7399075, "food": 2069933, "labor": 2446452, "rent": 700296, "other": 1351962}, "田町芝浦": {"sales": 8484393, "food": 2296295, "labor": 2389610, "rent": 1072500, "other": 1605644}, "町田": {"sales": 5487367, "food": 1590943, "labor": 1817785, "rent": 560000, "other": 1358109}, "京急蒲田": {"sales": 9203842, "food": 2554220, "labor": 2596504, "rent": 650000, "other": 1893833}, "西新宿一丁目": {"sales": 13745150, "food": 3869682, "labor": 3642694, "rent": 1895440, "other": 2330416}, "新宿東南口": {"sales": 9933094, "food": 2867421, "labor": 2878563, "rent": 1845516, "other": 1501395}, "横浜西口": {"sales": 6620510, "food": 1958012, "labor": 299846, "rent": 898380, "other": 5413175}};
+const APRIL_2026_NAPOLIMAN = {"ナポリマン": {"sales": 7546360, "food": 2517650, "labor": 2057999, "rent": 861090, "other": 1713590}};
+
+const MAY_2026_CONA = {"上野": {"sales": 9186597, "food": 2433946, "labor": 2574237, "rent": 641870, "other": 1799100}, "川崎": {"sales": 15132683, "food": 4069450, "labor": 3252776, "rent": 910560, "other": 2142153}, "新宿歌舞伎町": {"sales": 10894363, "food": 2607916, "labor": 2669507, "rent": 958900, "other": 1728654}, "所沢": {"sales": 8164369, "food": 2162909, "labor": 2187955, "rent": 730000, "other": 1398820}, "大宮": {"sales": 16299573, "food": 4301378, "labor": 3648443, "rent": 1320000, "other": 1750406}, "渋谷宇田川町": {"sales": 9687085, "food": 2416958, "labor": 2733445, "rent": 960000, "other": 1686481}, "蒲田": {"sales": 7854464, "food": 2537122, "labor": 2028667, "rent": 480000, "other": 1497054}, "立川": {"sales": 10965028, "food": 2947956, "labor": 3275382, "rent": 990090, "other": 2071011}, "横浜鶴屋町": {"sales": 14431551, "food": 3830233, "labor": 3107158, "rent": 900000, "other": 2392844}, "船橋": {"sales": 13235179, "food": 3464742, "labor": 2977813, "rent": 1648000, "other": 1553282}, "溝の口": {"sales": 8387800, "food": 2411876, "labor": 2343085, "rent": 440000, "other": 1350196}, "錦糸町": {"sales": 10704673, "food": 2941010, "labor": 2808114, "rent": 800000, "other": 1892164}, "恵比寿": {"sales": 4086446, "food": 1139642, "labor": 1287734, "rent": 350000, "other": 858177}, "たまプラーザ": {"sales": 9594374, "food": 3125696, "labor": 2435156, "rent": 433000, "other": 2372250}, "麻布十番": {"sales": 6259162, "food": 1776505, "labor": 2055449, "rent": 591600, "other": 1344857}, "柏": {"sales": 10007201, "food": 2604778, "labor": 2260996, "rent": 503900, "other": 1303538}, "津田沼": {"sales": 8553152, "food": 2289190, "labor": 2367825, "rent": 700296, "other": 1460223}, "田町芝浦": {"sales": 8890656, "food": 2412059, "labor": 2472452, "rent": 1072500, "other": 1928429}, "町田": {"sales": 6646176, "food": 1871097, "labor": 2707039, "rent": 560000, "other": 1638513}, "京急蒲田": {"sales": 9728734, "food": 2725718, "labor": 2621338, "rent": 650000, "other": 1703906}, "西新宿一丁目": {"sales": 14165679, "food": 3840966, "labor": 3461220, "rent": 1895440, "other": 2459857}, "新宿東南口": {"sales": 10300084, "food": 2830044, "labor": 2855791, "rent": 1845516, "other": 2273379}, "横浜西口": {"sales": 10406181, "food": 2775158, "labor": 3132254, "rent": 898380, "other": 1506367}};
+const MAY_2026_NAPOLIMAN = {"ナポリマン": {"sales": 7967927, "food": 2724943, "labor": 2117407, "rent": 755060, "other": 2144819}};
+
+const OTHER_BREAKDOWN_LABELS = { recruit:'採用教育費', travel:'旅費交通費', ad:'広告宣伝費', utility:'水道光熱費', supplies:'消耗品費', fee:'支払手数料', repair:'修繕費', sanitation:'衛生費' };
+
+const APRIL_2026_OTHER_CONA = {"上野": {"recruit": 0, "travel": 22190, "ad": 459911, "utility": 325875, "supplies": 198759, "fee": 91120, "repair": 39000, "sanitation": 82710}, "川崎": {"recruit": 0, "travel": 81440, "ad": 347280, "utility": 261497, "supplies": 333759, "fee": 147292, "repair": 370100, "sanitation": 43950}, "新宿歌舞伎町": {"recruit": 0, "travel": 86937, "ad": 408341, "utility": 358853, "supplies": 146497, "fee": 93259, "repair": 0, "sanitation": 152672}, "所沢": {"recruit": 0, "travel": 76144, "ad": 211245, "utility": 362010, "supplies": 123698, "fee": 22800, "repair": 0, "sanitation": 40870}, "大宮": {"recruit": 0, "travel": 162313, "ad": 417478, "utility": 447437, "supplies": 221690, "fee": 24710, "repair": 0, "sanitation": 122567}, "渋谷宇田川町": {"recruit": 0, "travel": 103520, "ad": 486456, "utility": 156940, "supplies": 191913, "fee": 22800, "repair": 96614, "sanitation": 159026}, "蒲田": {"recruit": 0, "travel": 63651, "ad": 261787, "utility": 380390, "supplies": 190736, "fee": 122367, "repair": 11000, "sanitation": 58237}, "立川": {"recruit": 0, "travel": 132888, "ad": 493340, "utility": 203603, "supplies": 212919, "fee": 109510, "repair": 65000, "sanitation": 53000}, "横浜鶴屋町": {"recruit": 0, "travel": 140190, "ad": 567281, "utility": 440611, "supplies": 218713, "fee": 302110, "repair": 140500, "sanitation": 139050}, "船橋": {"recruit": 0, "travel": 93271, "ad": 510469, "utility": 220370, "supplies": 153931, "fee": 22800, "repair": 0, "sanitation": 138964}, "溝の口": {"recruit": 0, "travel": 45340, "ad": 263876, "utility": 169187, "supplies": 134590, "fee": 141967, "repair": 81950, "sanitation": 83890}, "錦糸町": {"recruit": 0, "travel": 89155, "ad": 270443, "utility": 378616, "supplies": 167516, "fee": 240605, "repair": 0, "sanitation": 65329}, "恵比寿": {"recruit": 0, "travel": 45900, "ad": 210616, "utility": 146155, "supplies": 76836, "fee": 162681, "repair": 0, "sanitation": 131517}, "たまプラーザ": {"recruit": 0, "travel": 35324, "ad": 219406, "utility": 257303, "supplies": 274221, "fee": 588947, "repair": 29833, "sanitation": 159672}, "麻布十番": {"recruit": 0, "travel": 60651, "ad": 199243, "utility": 215778, "supplies": 134897, "fee": 94087, "repair": 0, "sanitation": 78360}, "柏": {"recruit": 0, "travel": 30662, "ad": 489784, "utility": 339942, "supplies": 145791, "fee": 111603, "repair": 165764, "sanitation": 51309}, "津田沼": {"recruit": 0, "travel": 69220, "ad": 402967, "utility": 318814, "supplies": 185952, "fee": 37920, "repair": 0, "sanitation": 106333}, "田町芝浦": {"recruit": 0, "travel": 50750, "ad": 373269, "utility": 199478, "supplies": 159617, "fee": 112621, "repair": 12500, "sanitation": 77800}, "町田": {"recruit": 0, "travel": 37755, "ad": 231787, "utility": 146971, "supplies": 164056, "fee": 23892, "repair": 0, "sanitation": 194200}, "京急蒲田": {"recruit": 0, "travel": 65050, "ad": 265847, "utility": 353367, "supplies": 157492, "fee": 24600, "repair": 0, "sanitation": 235400}, "西新宿一丁目": {"recruit": 0, "travel": 162315, "ad": 540515, "utility": 535057, "supplies": 160078, "fee": 28300, "repair": 171000, "sanitation": 102226}, "新宿東南口": {"recruit": 0, "travel": 75897, "ad": 471723, "utility": 232903, "supplies": 146581, "fee": 26620, "repair": 0, "sanitation": 91449}, "横浜西口": {"recruit": 0, "travel": 113548, "ad": 347600, "utility": 111752, "supplies": 1862236, "fee": 60951, "repair": 0, "sanitation": 67387}};
+const APRIL_2026_OTHER_NAPOLIMAN = {"ナポリマン": {"recruit": 0, "travel": 80511, "ad": 248854, "utility": 244989, "supplies": 143249, "fee": 655323, "repair": 40000, "sanitation": 109210}};
+
+const MAY_2026_OTHER_CONA = {"上野": {"recruit": 0, "travel": 165150, "ad": 458668, "utility": 367015, "supplies": 189082, "fee": 100397, "repair": 17000, "sanitation": 213310}, "川崎": {"recruit": 0, "travel": 77277, "ad": 336554, "utility": 563909, "supplies": 220604, "fee": 151838, "repair": 81290, "sanitation": 179530}, "新宿歌舞伎町": {"recruit": 0, "travel": 130344, "ad": 398573, "utility": 364843, "supplies": 180524, "fee": 73221, "repair": 50700, "sanitation": 93909}, "所沢": {"recruit": 0, "travel": 68011, "ad": 211969, "utility": 465183, "supplies": 127494, "fee": 23912, "repair": 0, "sanitation": 187250}, "大宮": {"recruit": 0, "travel": 130239, "ad": 355453, "utility": 350622, "supplies": 194406, "fee": 23151, "repair": 0, "sanitation": 222659}, "渋谷宇田川町": {"recruit": 0, "travel": 110035, "ad": 473365, "utility": 295551, "supplies": 158042, "fee": 20326, "repair": 0, "sanitation": 113626}, "蒲田": {"recruit": 0, "travel": 63576, "ad": 221624, "utility": 224820, "supplies": 268741, "fee": 110894, "repair": 114214, "sanitation": 145292}, "立川": {"recruit": 0, "travel": 129438, "ad": 436320, "utility": 425115, "supplies": 216716, "fee": 130149, "repair": 228400, "sanitation": 168150}, "横浜鶴屋町": {"recruit": 0, "travel": 115722, "ad": 485116, "utility": 290451, "supplies": 342604, "fee": 322098, "repair": 286190, "sanitation": 108150}, "船橋": {"recruit": 0, "travel": 116082, "ad": 439811, "utility": 396015, "supplies": 160175, "fee": 17903, "repair": 81570, "sanitation": 98344}, "溝の口": {"recruit": 0, "travel": 46892, "ad": 244355, "utility": 311140, "supplies": 161480, "fee": 119500, "repair": 71834, "sanitation": 62390}, "錦糸町": {"recruit": 0, "travel": 92184, "ad": 240972, "utility": 320567, "supplies": 264143, "fee": 276561, "repair": 139590, "sanitation": 162400}, "恵比寿": {"recruit": 0, "travel": 34955, "ad": 191464, "utility": 153684, "supplies": 107904, "fee": 142002, "repair": 0, "sanitation": 96519}, "たまプラーザ": {"recruit": 0, "travel": 51393, "ad": 233262, "utility": 481371, "supplies": 379032, "fee": 737485, "repair": 93570, "sanitation": 84279}, "麻布十番": {"recruit": 0, "travel": 62902, "ad": 165937, "utility": 378747, "supplies": 191366, "fee": 138098, "repair": 49858, "sanitation": 92508}, "柏": {"recruit": 0, "travel": 39408, "ad": 410674, "utility": 198280, "supplies": 148429, "fee": 98306, "repair": 0, "sanitation": 111332}, "津田沼": {"recruit": 0, "travel": 70814, "ad": 358505, "utility": 239288, "supplies": 128884, "fee": 46012, "repair": 8000, "sanitation": 159213}, "田町芝浦": {"recruit": 0, "travel": 52244, "ad": 361786, "utility": 415050, "supplies": 211133, "fee": 110481, "repair": 0, "sanitation": 188300}, "町田": {"recruit": 0, "travel": 67730, "ad": 223310, "utility": 167302, "supplies": 238275, "fee": 113788, "repair": 295000, "sanitation": 124070}, "京急蒲田": {"recruit": 0, "travel": 71370, "ad": 289813, "utility": 241197, "supplies": 225713, "fee": 16755, "repair": 46209, "sanitation": 101500}, "西新宿一丁目": {"recruit": 0, "travel": 144415, "ad": 507704, "utility": 545965, "supplies": 216764, "fee": 35482, "repair": 0, "sanitation": 126610}, "新宿東南口": {"recruit": 0, "travel": 76820, "ad": 479556, "utility": 556232, "supplies": 170313, "fee": 19132, "repair": 0, "sanitation": 113360}, "横浜西口": {"recruit": 0, "travel": 100629, "ad": 453732, "utility": 122767, "supplies": 302358, "fee": 24170, "repair": 0, "sanitation": 80077}};
+const MAY_2026_OTHER_NAPOLIMAN = {"ナポリマン": {"recruit": 0, "travel": 84278, "ad": 240863, "utility": 519271, "supplies": 289284, "fee": 660643, "repair": 38060, "sanitation": 97930}};
+
+function defaultData(){
+  const conaStores = [
+    '蒲田','京急蒲田','川崎','横浜鶴屋町','横浜西口','新宿歌舞伎町','新宿東南口','西新宿一丁目',
+    '恵比寿','大宮','麻布十番','溝の口','立川','田町芝浦','錦糸町','渋谷宇田川町','所沢','柏',
+    '船橋','上野','津田沼','たまプラーザ','町田'
+  ];
+  const conaData = {};
+  conaStores.forEach(s => {
+    conaData[s] = {};
+    if(APRIL_2026_CONA[s]) conaData[s]['2026-04'] = { ...APRIL_2026_CONA[s], otherBreakdown: APRIL_2026_OTHER_CONA[s] ? {...APRIL_2026_OTHER_CONA[s]} : undefined };
+    if(MAY_2026_CONA[s]) conaData[s]['2026-05'] = { ...MAY_2026_CONA[s], otherBreakdown: MAY_2026_OTHER_CONA[s] ? {...MAY_2026_OTHER_CONA[s]} : undefined };
+  });
+  return {
+    CONA: {
+      stores: conaStores,
+      data: conaData
+    },
+    NAPOLIMAN: {
+      stores: ['ナポリマン'],
+      data: {
+        'ナポリマン': {
+          '2026-04': { ...APRIL_2026_NAPOLIMAN['ナポリマン'], otherBreakdown: {...APRIL_2026_OTHER_NAPOLIMAN['ナポリマン']} },
+          '2026-05': { ...MAY_2026_NAPOLIMAN['ナポリマン'], otherBreakdown: {...MAY_2026_OTHER_NAPOLIMAN['ナポリマン']} }
+        }
+      }
+    }
+  };
+}
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      migrateConaStores(parsed);
+      return parsed;
+    }
+  }catch(e){ console.error('読み込みエラー', e); }
+  const d = defaultData();
+  saveData(d);
+  return d;
+}
+// 既存の保存データに、まだ登録されていない最新のCONA店舗・2026年4-5月実績を追加する（既存データは上書きしない）
+function migrateConaStores(parsed){
+  if(!parsed.CONA) return;
+  // 過去バージョンで作成された仮のサンプル店舗を除去する
+  ['CONA','NAPOLIMAN'].forEach(b=>{
+    if(!parsed[b]) return;
+    const sampleNames = parsed[b].stores.filter(s => s.includes('サンプル'));
+    sampleNames.forEach(s=>{
+      parsed[b].stores = parsed[b].stores.filter(x=>x!==s);
+      delete parsed[b].data[s];
+    });
+  });
+  const canonical = defaultData().CONA.stores;
+  canonical.forEach(s => {
+    if(!parsed.CONA.stores.includes(s)) parsed.CONA.stores.push(s);
+    if(!parsed.CONA.data[s]) parsed.CONA.data[s] = {};
+    if(APRIL_2026_CONA[s] && !parsed.CONA.data[s]['2026-04']){
+      parsed.CONA.data[s]['2026-04'] = { ...APRIL_2026_CONA[s], otherBreakdown: APRIL_2026_OTHER_CONA[s] ? {...APRIL_2026_OTHER_CONA[s]} : undefined };
+    }
+    if(MAY_2026_CONA[s] && !parsed.CONA.data[s]['2026-05']){
+      parsed.CONA.data[s]['2026-05'] = { ...MAY_2026_CONA[s], otherBreakdown: MAY_2026_OTHER_CONA[s] ? {...MAY_2026_OTHER_CONA[s]} : undefined };
+    }
+    // 既に月データはあるが内訳が無い場合は内訳だけ追加
+    ['2026-04','2026-05'].forEach(ym=>{
+      const entry = parsed.CONA.data[s][ym];
+      if(entry && !entry.otherBreakdown){
+        const src = ym === '2026-04' ? APRIL_2026_OTHER_CONA[s] : MAY_2026_OTHER_CONA[s];
+        if(src) entry.otherBreakdown = {...src};
+      }
+    });
+  });
+  if(parsed.NAPOLIMAN){
+    if(!parsed.NAPOLIMAN.stores.includes('ナポリマン')) parsed.NAPOLIMAN.stores.push('ナポリマン');
+    if(!parsed.NAPOLIMAN.data['ナポリマン']) parsed.NAPOLIMAN.data['ナポリマン'] = {};
+    if(!parsed.NAPOLIMAN.data['ナポリマン']['2026-04']){
+      parsed.NAPOLIMAN.data['ナポリマン']['2026-04'] = { ...APRIL_2026_NAPOLIMAN['ナポリマン'], otherBreakdown: {...APRIL_2026_OTHER_NAPOLIMAN['ナポリマン']} };
+    }
+    if(!parsed.NAPOLIMAN.data['ナポリマン']['2026-05']){
+      parsed.NAPOLIMAN.data['ナポリマン']['2026-05'] = { ...MAY_2026_NAPOLIMAN['ナポリマン'], otherBreakdown: {...MAY_2026_OTHER_NAPOLIMAN['ナポリマン']} };
+    }
+    ['2026-04','2026-05'].forEach(ym=>{
+      const entry = parsed.NAPOLIMAN.data['ナポリマン'][ym];
+      if(entry && !entry.otherBreakdown){
+        const src = ym === '2026-04' ? APRIL_2026_OTHER_NAPOLIMAN['ナポリマン'] : MAY_2026_OTHER_NAPOLIMAN['ナポリマン'];
+        if(src) entry.otherBreakdown = {...src};
+      }
+    });
+  }
+}
+function saveData(d){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+}
+
+let state = {
+  data: loadData(),
+  activeTab: 'overview',
+  selectedStore: { CONA: null, NAPOLIMAN: null }
+};
+// 初期選択店舗をセット
+for(const b of ['CONA','NAPOLIMAN']){
+  if(state.data[b].stores.length) state.selectedStore[b] = state.data[b].stores[0];
+}
+
+/* ============================= ユーティリティ ============================= */
+function yen(v){
+  if(v === null || v === undefined || isNaN(v)) return '—';
+  return '¥' + Math.round(v).toLocaleString('ja-JP');
+}
+function pct(v, digits=1){
+  if(v === null || v === undefined || isNaN(v)) return '—';
+  const s = v >= 0 ? '+' : '';
+  return s + v.toFixed(digits) + '%';
+}
+function pt(v, digits=1){
+  if(v === null || v === undefined || isNaN(v)) return '—';
+  const s = v >= 0 ? '+' : '';
+  return s + v.toFixed(digits) + 'pt';
+}
+function monthLabel(ym){
+  if(!ym) return '—';
+  const [y,m] = ym.split('-');
+  return `${y}年${parseInt(m,10)}月`;
+}
+function sortedMonths(storeData){
+  return Object.keys(storeData || {}).sort();
+}
+function computeProfit(entry){
+  if(!entry) return null;
+  return entry.sales - (entry.food + entry.labor + entry.rent + entry.other);
+}
+function metricValue(entry, key){
+  if(!entry) return null;
+  if(key === 'profit') return computeProfit(entry);
+  return entry[key];
+}
+function pctChange(cur, prev){
+  if(cur === null || prev === null || prev === undefined || cur === undefined || prev === 0) return null;
+  return ((cur - prev) / Math.abs(prev)) * 100;
+}
+
+/* ============================= アラート生成（総評） ============================= */
+function generateAlerts(){
+  const alerts = [];
+  for(const brandKey of Object.keys(BRAND_META)){
+    const brand = state.data[brandKey];
+    for(const store of brand.stores){
+      const storeData = brand.data[store] || {};
+      const months = sortedMonths(storeData);
+      if(months.length < 2) continue;
+      const latest = months[months.length - 1];
+      const prev1 = months[months.length - 2];
+      const prev2 = months.length >= 3 ? months[months.length - 3] : null;
+      const eLatest = storeData[latest];
+      const ePrev1 = storeData[prev1];
+      const ePrev2 = prev2 ? storeData[prev2] : null;
+
+      // 絶対値項目（売上・費用・利益）
+      for(const key of Object.keys(METRIC_LABELS)){
+        const cur = metricValue(eLatest, key);
+        const isCost = COST_KEYS.includes(key);
+        [['前月比', ePrev1, prev1], ['前々月比', ePrev2, prev2]].forEach(([label, ePrev, ym])=>{
+          if(!ePrev) return;
+          const prevVal = metricValue(ePrev, key);
+          const change = pctChange(cur, prevVal);
+          if(change === null || Math.abs(change) < RATE_THRESHOLD) return;
+          const bad = isCost ? change > 0 : change < 0; // コストは増加が悪化、売上・利益は減少が悪化
+          alerts.push({
+            brand: brandKey, store, month: latest, label,
+            title: `${METRIC_LABELS[key]}が${label} ${pct(change)}`,
+            detail: `${monthLabel(ym)} ${yen(prevVal)} → ${monthLabel(latest)} ${yen(cur)}`,
+            severity: Math.abs(change) >= 15 ? '高' : '中',
+            bad, absChange: Math.abs(change), metricKey: key,
+            entry: eLatest, prevEntry: ePrev, storeName: store
+          });
+        });
+      }
+
+      // 比率項目（食材費率・人件費率）
+      const ratioDefs = [ {key:'food', label:'食材費率'}, {key:'labor', label:'人件費率'} ];
+      ratioDefs.forEach(({key,label})=>{
+        const curRatio = eLatest && eLatest.sales ? (eLatest[key] / eLatest.sales * 100) : null;
+        [['前月比', ePrev1, prev1], ['前々月比', ePrev2, prev2]].forEach(([lbl, ePrev, ym])=>{
+          if(!ePrev || !ePrev.sales || curRatio === null) return;
+          const prevRatio = ePrev[key] / ePrev.sales * 100;
+          const diff = curRatio - prevRatio;
+          if(Math.abs(diff) < RATIO_THRESHOLD) return;
+          alerts.push({
+            brand: brandKey, store, month: latest, label: lbl,
+            title: `${label}が${lbl} ${pt(diff)}`,
+            detail: `${monthLabel(ym)} ${prevRatio.toFixed(1)}% → ${monthLabel(latest)} ${curRatio.toFixed(1)}%`,
+            severity: Math.abs(diff) >= 4 ? '高' : '中',
+            bad: diff > 0, absChange: Math.abs(diff), metricKey: key + 'Ratio',
+            entry: eLatest, prevEntry: ePrev, storeName: store
+          });
+        });
+      });
+
+      // その他経費の内訳項目（広告費・水道光熱費など）ごとのアラート
+      Object.keys(OTHER_BREAKDOWN_LABELS).forEach(bKey=>{
+        if(!eLatest.otherBreakdown) return;
+        const cur = eLatest.otherBreakdown[bKey];
+        if(cur === undefined || cur === null) return;
+        [['前月比', ePrev1, prev1], ['前々月比', ePrev2, prev2]].forEach(([label, ePrev, ym])=>{
+          if(!ePrev || !ePrev.otherBreakdown) return;
+          const prevVal = ePrev.otherBreakdown[bKey];
+          if(prevVal === undefined || prevVal === null) return;
+          const diff = cur - prevVal;
+          const change = pctChange(cur, prevVal);
+          const bigEnough = Math.abs(diff) >= 20000; // 2万円未満の変動はノイズとして無視
+          const percentTrigger = change !== null && Math.abs(change) >= 30 && bigEnough;
+          const absoluteTrigger = Math.abs(diff) >= 150000; // 15万円以上は率にかかわらず検出
+          if(!percentTrigger && !absoluteTrigger) return;
+          const pctText = change !== null ? `（${pct(change)}）` : '（新規発生/大幅変動）';
+          alerts.push({
+            brand: brandKey, store, month: latest, label,
+            title: `${OTHER_BREAKDOWN_LABELS[bKey]}が${label} ${diff>=0?'+':''}${yen(diff)}${pctText}`,
+            detail: `${monthLabel(ym)} ${yen(prevVal)} → ${monthLabel(latest)} ${yen(cur)}`,
+            severity: (Math.abs(diff) >= 150000 || (change!==null && Math.abs(change)>=60)) ? '高' : '中',
+            bad: diff > 0, absChange: change !== null ? Math.abs(change) : 50, metricKey: bKey,
+            entry: eLatest, prevEntry: ePrev, storeName: store
+          });
+        });
+      });
+    }
+  }
+  alerts.sort((a,b)=> b.absChange - a.absChange);
+  return alerts;
+}
+
+/* ============================= コメント生成（根拠ベース） ============================= */
+function topBreakdownDriver(entry, prevEntry){
+  if(!entry || !prevEntry || !entry.otherBreakdown || !prevEntry.otherBreakdown) return null;
+  let maxKey = null, maxDiff = 0;
+  Object.keys(OTHER_BREAKDOWN_LABELS).forEach(k=>{
+    const diff = (entry.otherBreakdown[k]||0) - (prevEntry.otherBreakdown[k]||0);
+    if(Math.abs(diff) > Math.abs(maxDiff)){ maxDiff = diff; maxKey = k; }
+  });
+  return maxKey && Math.abs(maxDiff) > 0 ? { key:maxKey, diff:maxDiff } : null;
+}
+function topProfitDriver(entry, prevEntry){
+  if(!entry || !prevEntry) return null;
+  const deltaProfit = computeProfit(entry) - computeProfit(prevEntry);
+  const contributions = {
+    '売上': entry.sales - prevEntry.sales,
+    '食材費': -(entry.food - prevEntry.food),
+    '人件費': -(entry.labor - prevEntry.labor),
+    '家賃': -(entry.rent - prevEntry.rent),
+    'その他経費': -(entry.other - prevEntry.other),
+  };
+  // 利益の増減方向と同じ向きの要因の中から、最も影響が大きいものを選ぶ
+  const entries = Object.entries(contributions);
+  const aligned = entries.filter(([,v]) => deltaProfit >= 0 ? v > 0 : v < 0);
+  const pool = aligned.length ? aligned : entries;
+  let maxKey = null, maxVal = 0;
+  pool.forEach(([k,v])=>{
+    if(Math.abs(v) > Math.abs(maxVal)){ maxVal = v; maxKey = k; }
+  });
+  return maxKey ? { label:maxKey, value:maxVal } : null;
+}
+function commentFor(alert, allAlerts){
+  const { metricKey, entry, prevEntry, storeName } = alert;
+  const targets = getTargets(storeName);
+
+  if(metricKey === 'food' || metricKey === 'foodRatio'){
+    if(!targets || !entry.sales) return null;
+    const ratio = entry.food / entry.sales * 100;
+    const diff = ratio - targets.food;
+    if(Math.abs(diff) < 0.1) return null;
+    const yenImpact = Math.abs(diff)/100 * entry.sales;
+    return `食材費率は${ratio.toFixed(1)}%で、目標${targets.food}%を${diff>=0?'+':''}${diff.toFixed(1)}pt${diff>=0?'超過':'下回って'}おり、月商換算で約${yen(yenImpact)}の${diff>=0?'コスト増':'コスト減'}に相当します。`;
+  }
+  if(metricKey === 'labor' || metricKey === 'laborRatio'){
+    if(!targets || !entry.sales) return null;
+    const ratio = entry.labor / entry.sales * 100;
+    const diff = ratio - targets.labor;
+    if(Math.abs(diff) < 0.1) return null;
+    const yenImpact = Math.abs(diff)/100 * entry.sales;
+    return `人件費率は${ratio.toFixed(1)}%で、目標${targets.labor}%を${diff>=0?'+':''}${diff.toFixed(1)}pt${diff>=0?'超過':'下回って'}おり、月商換算で約${yen(yenImpact)}の${diff>=0?'コスト増':'コスト減'}に相当します。`;
+  }
+  if(metricKey === 'other'){
+    const drv = topBreakdownDriver(entry, prevEntry);
+    if(!drv) return '内訳データが無いため主因は特定できません。「その他経費」内訳をご確認ください。';
+    return `その他経費の内訳では${OTHER_BREAKDOWN_LABELS[drv.key]}が前月比${drv.diff>=0?'+':''}${yen(drv.diff)}と最も大きく変化しており、主因と考えられます。`;
+  }
+  if(metricKey === 'profit'){
+    const drv = topProfitDriver(entry, prevEntry);
+    if(!drv) return null;
+    return `${drv.label}の変化（${drv.value>=0?'+':''}${yen(drv.value)}）が利益変動の主因です。`;
+  }
+  if(metricKey === 'rent'){
+    return `家賃は通常固定費のため、契約更新・増床・改装などの特殊要因が発生した可能性があります。`;
+  }
+  if(Object.prototype.hasOwnProperty.call(OTHER_BREAKDOWN_LABELS, metricKey)){
+    if(!entry || !prevEntry) return null;
+    const otherDiff = entry.other - prevEntry.other;
+    const itemDiff = (entry.otherBreakdown?.[metricKey]||0) - (prevEntry.otherBreakdown?.[metricKey]||0);
+    if(otherDiff === 0) return null;
+    const share = Math.min(999, Math.abs(itemDiff / otherDiff * 100));
+    return `その他経費全体の変動額（${otherDiff>=0?'+':''}${yen(otherDiff)}）のうち、この項目が約${share.toFixed(0)}%を占めています。`;
+  }
+  if(metricKey === 'sales' && allAlerts){
+    const group = allAlerts.filter(a=>a.metricKey==='sales').sort((a,b)=>b.absChange-a.absChange);
+    const rank = group.findIndex(a=>a===alert) + 1;
+    if(rank && group.length){
+      return `売上の変動幅は、アラート対象となった全${group.length}件中${rank}番目の大きさです。`;
+    }
+    return null;
+  }
+  return null;
+}
+
+
+function renderOverview(){
+  const alerts = generateAlerts();
+  const high = alerts.filter(a=>a.severity==='高');
+  const mid = alerts.filter(a=>a.severity==='中');
+  const topHigh = high.slice(0, 6);
+  const restHigh = high.slice(6);
+
+  const alertCard = (a) => {
+    const meta = BRAND_META[a.brand];
+    const changeColor = a.bad ? 'down' : 'up';
+    const comment = commentFor(a, alerts);
+    return `
+      <div class="surface rounded-xl p-4 fade-in">
+        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+          <span class="text-xs font-semibold" style="color:${meta.accent};">${meta.label}</span>
+          <span class="text-xs" style="color:var(--text-dim);">${a.store}・${monthLabel(a.month)}</span>
+        </div>
+        <p class="font-medium text-sm ${changeColor} mb-0.5">${a.title}</p>
+        <p class="text-xs font-mono mb-2" style="color:var(--text-dim);">${a.detail}</p>
+        ${comment ? `<p class="text-xs pt-2" style="border-top:1px solid var(--line); color:var(--text-dim);">💬 ${comment}</p>` : ''}
+      </div>`;
+  };
+
+  const midLine = (a) => {
+    const meta = BRAND_META[a.brand];
+    const changeColor = a.bad ? 'down' : 'up';
+    return `
+      <div class="py-2.5" style="border-bottom:1px solid var(--line);">
+        <div class="flex items-center gap-2 mb-0.5 flex-wrap">
+          <span class="text-xs font-semibold" style="color:${meta.accent};">${meta.label}</span>
+          <span class="text-xs" style="color:var(--text-dim);">${a.store}</span>
+        </div>
+        <div class="flex items-baseline justify-between gap-3 flex-wrap">
+          <span class="text-sm ${changeColor}">${a.title}</span>
+          <span class="text-xs font-mono" style="color:var(--text-dim);">${a.detail}</span>
+        </div>
+      </div>`;
+  };
+
+  return `
+    <div class="fade-in">
+      <div class="mb-6">
+        <p class="text-xs uppercase tracking-widest" style="color:var(--gold);">Cross-store summary</p>
+        <h2 class="font-display text-3xl mt-1">全店舗 総評</h2>
+        <p class="text-sm mt-2" style="color:var(--text-dim);">
+          前月・前々月と比べて振れ幅の大きい店舗・項目を自動検出しています。
+          ${alerts.length ? `要注意 <span class="font-semibold" style="color:var(--tomato-light);">${high.length}件</span>、注視 <span class="font-semibold" style="color:var(--gold);">${mid.length}件</span> を検出しました。` : ''}
+        </p>
+      </div>
+
+      ${alerts.length === 0 ? `
+        <div class="surface rounded-xl p-10 text-center" style="color:var(--text-dim);">
+          <p class="font-display text-xl mb-1">特に大きな変動は見つかりませんでした</p>
+          <p class="text-sm">各店舗に2ヶ月以上のデータが揃うと、比較アラートが表示されます。</p>
+        </div>
+      ` : `
+        ${topHigh.length ? `
+          <h3 class="text-sm font-semibold mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full" style="background:var(--tomato-light);"></span>特に大きな変動
+          </h3>
+          <div class="grid md:grid-cols-2 gap-3 mb-8">${topHigh.map(alertCard).join('')}</div>
+        ` : ''}
+        ${(restHigh.length || mid.length) ? `
+          <h3 class="text-sm font-semibold mb-2 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full" style="background:var(--gold);"></span>その他の変動
+          </h3>
+          <div class="surface rounded-xl px-4">
+            ${[...restHigh, ...mid].map(midLine).join('')}
+          </div>
+        ` : ''}
+      `}
+    </div>`;
+}
+
+/* ============================= レンダリング：ブランドタブ ============================= */
+const CONA_REGIONS = {
+  '東京': ['蒲田','京急蒲田','新宿歌舞伎町','新宿東南口','西新宿一丁目','恵比寿','麻布十番','立川','田町芝浦','錦糸町','渋谷宇田川町','上野','町田'],
+  '神奈川': ['川崎','横浜鶴屋町','横浜西口','溝の口','たまプラーザ'],
+  '埼玉': ['大宮','所沢'],
+  '千葉': ['柏','船橋','津田沼'],
+};
+
+// 新評価26.5〜 のFL目標値（食材費率・人件費率・FL比率、単位:%）
+const STORE_TARGETS = {
+  '上野': { food:27, labor:27, fl:56, supplies:2 },
+  '川崎': { food:27, labor:26, fl:55, supplies:2 },
+  '新宿歌舞伎町': { food:27, labor:27, fl:56, supplies:2 },
+  '所沢': { food:27, labor:27, fl:56, supplies:2 },
+  '渋谷宇田川町': { food:27, labor:27, fl:56, supplies:2 },
+  '大宮': { food:27, labor:26, fl:55, supplies:2 },
+  '蒲田': { food:27, labor:27, fl:56, supplies:2 },
+  '立川': { food:27, labor:27, fl:56, supplies:2 },
+  '横浜鶴屋町': { food:27, labor:26, fl:55, supplies:2 },
+  '船橋': { food:27, labor:26, fl:55, supplies:2 },
+  '溝の口': { food:27, labor:27, fl:56, supplies:2 },
+  '錦糸町': { food:27, labor:28, fl:57, supplies:2 },
+  'たまプラーザ': { food:30, labor:27, fl:59, supplies:2 },
+  '恵比寿': { food:31, labor:28, fl:61, supplies:2 },
+  '柏': { food:27, labor:27, fl:56, supplies:2 },
+  '麻布十番': { food:29, labor:28, fl:59, supplies:2 },
+  '津田沼': { food:27, labor:27, fl:56, supplies:2 },
+  '田町芝浦': { food:27, labor:27, fl:56, supplies:2 },
+  '町田': { food:29, labor:29, fl:60, supplies:2 },
+  '京急蒲田': { food:27, labor:28, fl:57, supplies:2 },
+  '新宿東南口': { food:27, labor:27, fl:56, supplies:2 },
+  '西新宿一丁目': { food:27, labor:27, fl:56, supplies:2 },
+  '横浜西口': { food:27, labor:27, fl:56, supplies:2 },
+  'ナポリマン': { food:32, labor:27, fl:61, supplies:2 },
+};
+function getTargets(storeName){
+  return STORE_TARGETS[storeName] || null;
+}
+
+function renderBrandTab(brandKey){
+  const meta = BRAND_META[brandKey];
+  const brand = state.data[brandKey];
+  const stores = brand.stores;
+  const selected = state.selectedStore[brandKey];
+  const storeData = selected ? (brand.data[selected] || {}) : {};
+  const months = sortedMonths(storeData);
+  const recentMonths = months.slice(-6);
+  const latestMonth = months[months.length - 1] || '';
+
+  const storeSelector = () => {
+    if(brandKey === 'CONA'){
+      const groups = Object.entries(CONA_REGIONS).map(([region, list]) => {
+        const opts = list.filter(s => stores.includes(s)).map(s =>
+          `<option value="${escapeAttr(s)}" ${s === selected ? 'selected' : ''}>${s}</option>`
+        ).join('');
+        return opts ? `<optgroup label="${region}">${opts}</optgroup>` : '';
+      }).join('');
+      // 地域リストに無い店舗（新規追加分）
+      const knownList = Object.values(CONA_REGIONS).flat();
+      const others = stores.filter(s => !knownList.includes(s));
+      const otherOpts = others.length ? `<optgroup label="その他">${others.map(s => `<option value="${escapeAttr(s)}" ${s===selected?'selected':''}>${s}</option>`).join('')}</optgroup>` : '';
+      return `${groups}${otherOpts}`;
+    }
+    return stores.map(s => `<option value="${escapeAttr(s)}" ${s === selected ? 'selected' : ''}>${s}</option>`).join('');
+  };
+
+  if(!selected){
+    return `
+      <div class="fade-in">
+        <div class="mb-6">
+          <p class="text-xs uppercase tracking-widest" style="color:${meta.accent};">${meta.label}</p>
+          <h2 class="font-display text-3xl mt-1">店舗PL管理</h2>
+        </div>
+        <div class="surface rounded-xl p-10 text-center" style="color:var(--text-dim);">店舗データがありません</div>
+      </div>`;
+  }
+
+  return `
+    <div class="fade-in">
+      <div class="flex items-start justify-between flex-wrap gap-3 mb-5">
+        <div>
+          <p class="text-xs uppercase tracking-widest" style="color:${meta.accent};">${meta.label}</p>
+          <h2 class="font-display text-3xl mt-1">店舗PL管理</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-xs" style="color:var(--text-dim);">店舗を選択</label>
+          <select id="store-select" data-brand="${brandKey}" class="w-52">
+            ${storeSelector()}
+          </select>
+        </div>
+      </div>
+
+      <div class="surface rounded-xl p-5 mb-6">
+        <h3 class="font-semibold mb-4 text-sm" style="color:var(--text-dim);">直近サマリー（${selected}・${monthLabel(latestMonth)}）</h3>
+        ${renderLatestSummary(storeData, months, meta, selected)}
+      </div>
+
+      <div class="surface rounded-xl p-5 mb-6 overflow-x-auto">
+        <h3 class="font-semibold mb-4 text-sm" style="color:var(--text-dim);">月次比較テーブル（直近${recentMonths.length}ヶ月）</h3>
+        ${renderComparisonTable(storeData, recentMonths, brandKey, selected)}
+      </div>
+
+      ${renderSimulator(brandKey, storeData, months, selected)}
+    </div>`;
+}
+
+function renderLatestSummary(storeData, months, meta, storeName){
+  if(!months.length){
+    return `<p style="color:var(--text-dim);" class="text-sm">まだデータがありません。</p>`;
+  }
+  const latest = months[months.length-1];
+  const prev = months.length >= 2 ? months[months.length-2] : null;
+  const eLatest = storeData[latest];
+  const ePrev = prev ? storeData[prev] : null;
+  const profit = computeProfit(eLatest);
+  const foodRatio = eLatest.sales ? (eLatest.food / eLatest.sales * 100) : null;
+  const laborRatio = eLatest.sales ? (eLatest.labor / eLatest.sales * 100) : null;
+  const flRatio = (foodRatio !== null && laborRatio !== null) ? foodRatio + laborRatio : null;
+  const suppliesRatio = (eLatest.otherBreakdown && eLatest.sales) ? (eLatest.otherBreakdown.supplies / eLatest.sales * 100) : null;
+  const targets = getTargets(storeName);
+
+  const row = (label, val, key) => {
+    let deltaHtml = '<span style="color:var(--text-dim);">前月データなし</span>';
+    if(ePrev){
+      const cur = metricValue(eLatest, key);
+      const prevVal = metricValue(ePrev, key);
+      const change = pctChange(cur, prevVal);
+      if(change !== null){
+        const isCost = COST_KEYS.includes(key);
+        const bad = isCost ? change > 0 : change < 0;
+        deltaHtml = `<span class="${bad ? 'down' : 'up'} font-mono">${pct(change)}</span> <span style="color:var(--text-dim);">前月比</span>`;
+      }
+    }
+    return `
+      <div class="flex items-center justify-between py-2" style="border-bottom:1px solid var(--line);">
+        <span class="text-sm">${label}</span>
+        <div class="text-right">
+          <div class="font-mono text-sm">${yen(val)}</div>
+          <div class="text-xs mt-0.5">${deltaHtml}</div>
+        </div>
+      </div>`;
+  };
+
+  const targetLine = (label, val, targetVal) => {
+    if(val === null || targetVal === undefined || targetVal === null) return '';
+    const diff = val - targetVal;
+    const bad = diff > 0; // コスト比率は目標超過が悪化
+    const badgeColor = Math.abs(diff) < 0.05 ? 'var(--text-dim)' : (bad ? 'var(--bad)' : 'var(--good)');
+    return `
+      <div class="flex items-center justify-between py-1.5">
+        <span class="text-xs" style="color:var(--text-dim);">${label}（目標 ${targetVal.toFixed(1)}%）</span>
+        <span class="text-xs font-mono">
+          <span>${val.toFixed(1)}%</span>
+          <span style="color:${badgeColor};">（${pt(diff)}）</span>
+        </span>
+      </div>`;
+  };
+
+  return `
+    ${row('売上', eLatest.sales, 'sales')}
+    ${row('食材費', eLatest.food, 'food')}
+    ${row('人件費', eLatest.labor, 'labor')}
+    ${row('家賃', eLatest.rent, 'rent')}
+    ${row('その他経費', eLatest.other, 'other')}
+    ${row('利益', profit, 'profit')}
+    ${targets ? `
+      <div class="mt-3 pt-2" style="border-top:1px dashed var(--line);">
+        ${targetLine('食材費率', foodRatio, targets.food)}
+        ${targetLine('人件費率', laborRatio, targets.labor)}
+        ${targetLine('FL比率', flRatio, targets.fl)}
+        ${targetLine('消耗品費率', suppliesRatio, targets.supplies)}
+      </div>
+    ` : `
+      <div class="flex justify-between text-xs mt-3" style="color:var(--text-dim);">
+        <span>食材費率：<span class="font-mono" style="color:var(--text);">${foodRatio!==null ? foodRatio.toFixed(1)+'%' : '—'}</span></span>
+        <span>人件費率：<span class="font-mono" style="color:var(--text);">${laborRatio!==null ? laborRatio.toFixed(1)+'%' : '—'}</span></span>
+      </div>
+    `}`;
+}
+
+function renderComparisonTable(storeData, months, brandKey, storeName){
+  if(!months.length){
+    return `<p style="color:var(--text-dim);" class="text-sm">データがありません。</p>`;
+  }
+  const targets = getTargets(storeName);
+  const rows = [
+    { key:'sales', label:'売上' },
+    { key:'food', label:'食材費' },
+    { key:'foodRatio', label:'食材費率', targetKey:'food' },
+    { key:'labor', label:'人件費' },
+    { key:'laborRatio', label:'人件費率', targetKey:'labor' },
+    { key:'flRatio', label:'FL比率', targetKey:'fl' },
+    { key:'rent', label:'家賃' },
+    { key:'other', label:'その他経費' },
+    { key:'suppliesRatio', label:'消耗品費率', targetKey:'supplies' },
+    { key:'profit', label:'利益' },
+  ];
+
+  const ratioValue = (entry, key) => {
+    if(key === 'foodRatio') return entry.sales ? entry.food/entry.sales*100 : null;
+    if(key === 'laborRatio') return entry.sales ? entry.labor/entry.sales*100 : null;
+    if(key === 'flRatio') return entry.sales ? (entry.food+entry.labor)/entry.sales*100 : null;
+    if(key === 'suppliesRatio') return (entry.otherBreakdown && entry.sales) ? entry.otherBreakdown.supplies/entry.sales*100 : null;
+    return metricValue(entry, key);
+  };
+
+  const header = `<tr><th>項目</th>${months.map(m=>`<th>${monthLabel(m)}</th>`).join('')}<th></th></tr>`;
+
+  const hasBreakdown = months.some(m => storeData[m].otherBreakdown);
+  const breakdownRows = hasBreakdown ? Object.keys(OTHER_BREAKDOWN_LABELS).map(key => {
+    const cells = months.map(m => {
+      const bd = storeData[m].otherBreakdown;
+      const v = bd ? bd[key] : null;
+      return `<td><div class="font-mono text-xs" style="color:var(--text-dim);">${v!==null && v!==undefined ? yen(v) : '—'}</div></td>`;
+    }).join('');
+    return `<tr><td class="text-xs pl-4" style="color:var(--text-dim);">└ ${OTHER_BREAKDOWN_LABELS[key]}</td>${cells}<td></td></tr>`;
+  }).join('') : '';
+
+  const isRatio = (key) => key.endsWith('Ratio');
+
+  const body = rows.map(r => {
+    const cells = months.map((m, idx) => {
+      const entry = storeData[m];
+      const val = isRatio(r.key) ? ratioValue(entry, r.key) : metricValue(entry, r.key);
+      const display = isRatio(r.key) ? (val !== null ? val.toFixed(1)+'%' : '—') : yen(val);
+
+      let deltaBadge = '';
+      if(idx > 0){
+        const prevEntry = storeData[months[idx-1]];
+        const prevVal = isRatio(r.key) ? ratioValue(prevEntry, r.key) : metricValue(prevEntry, r.key);
+        if(val !== null && prevVal !== null){
+          if(isRatio(r.key)){
+            const diff = val - prevVal;
+            const bad = diff > 0;
+            deltaBadge = Math.abs(diff) >= 0.05 ? `<div class="text-xs ${bad?'down':'up'}">${pt(diff)}</div>` : '';
+          } else {
+            const isCost = COST_KEYS.includes(r.key);
+            const change = pctChange(val, prevVal);
+            if(change !== null){
+              const bad = isCost ? change > 0 : change < 0;
+              deltaBadge = `<div class="text-xs ${bad?'down':'up'}">${pct(change)}</div>`;
+            }
+          }
+        }
+      }
+      // 最終月には目標比のズレを追加表示
+      let targetBadge = '';
+      if(idx === months.length - 1 && r.targetKey && targets && val !== null){
+        const t = targets[r.targetKey];
+        const diff = val - t;
+        const bad = diff > 0;
+        targetBadge = `<div class="text-xs mt-0.5" style="color:${Math.abs(diff)<0.05?'var(--text-dim)':(bad?'var(--bad)':'var(--good)')};">目標比 ${pt(diff)}</div>`;
+      }
+      return `<td><div class="font-mono">${display}</div>${deltaBadge}${targetBadge}</td>`;
+    }).join('');
+    const rowHtml = `<tr><td>${r.label}${r.targetKey && targets ? ` <span class="text-xs" style="color:var(--text-dim);">(目標${targets[r.targetKey]}%)</span>` : ''}</td>${cells}<td></td></tr>`;
+    return r.key === 'other' ? rowHtml + breakdownRows : rowHtml;
+  }).join('');
+
+  return `<table><thead>${header}</thead><tbody>${body}</tbody></table>`;
+}
+
+/* ============================= 簡易シミュレーター ============================= */
+function renderSimulator(brandKey, storeData, months, storeName){
+  if(!months.length){
+    return `<div class="surface rounded-xl p-6 text-center text-sm" style="color:var(--text-dim);">データがまだないため、シミュレーターは利用できません。</div>`;
+  }
+  return `
+    <div class="surface rounded-xl p-5" id="simulator-box" data-brand="${brandKey}" data-store="${escapeAttr(storeName)}">
+      <h3 class="font-semibold mb-1 text-sm" style="color:var(--text-dim);">簡易シミュレーター（${monthLabel(months[months.length-1])}実績ベース）</h3>
+      <p class="text-xs mb-5" style="color:var(--text-dim);">売上・食材費率・人件費率を動かすと、利益への影響がリアルタイムに反映されます（家賃・その他経費は固定として計算）。</p>
+
+      <div class="space-y-5">
+        <div>
+          <div class="flex justify-between text-xs mb-1.5">
+            <span>売上の変化</span>
+            <span id="sim-sales-val" class="font-mono font-semibold">±0.0%</span>
+          </div>
+          <input type="range" id="sim-sales" min="-20" max="20" step="0.5" value="0" class="sim-slider">
+        </div>
+        <div>
+          <div class="flex justify-between text-xs mb-1.5">
+            <span>食材費率の変化</span>
+            <span id="sim-food-val" class="font-mono font-semibold">±0.0pt</span>
+          </div>
+          <input type="range" id="sim-food" min="-3" max="3" step="0.1" value="0" class="sim-slider">
+        </div>
+        <div>
+          <div class="flex justify-between text-xs mb-1.5">
+            <span>人件費率の変化</span>
+            <span id="sim-labor-val" class="font-mono font-semibold">±0.0pt</span>
+          </div>
+          <input type="range" id="sim-labor" min="-3" max="3" step="0.1" value="0" class="sim-slider">
+        </div>
+      </div>
+
+      <div id="sim-results" class="mt-6"></div>
+
+      <button class="btn-ghost mt-4" data-action="sim-reset">条件をリセット</button>
+    </div>`;
+}
+
+function getSimBaseline(brandKey, storeName){
+  const brand = state.data[brandKey];
+  const storeData = brand.data[storeName] || {};
+  const months = sortedMonths(storeData);
+  if(!months.length) return null;
+  const entry = storeData[months[months.length - 1]];
+  return {
+    sales: entry.sales, food: entry.food, labor: entry.labor,
+    rent: entry.rent, other: entry.other,
+    foodRatio: entry.sales ? entry.food/entry.sales*100 : 0,
+    laborRatio: entry.sales ? entry.labor/entry.sales*100 : 0,
+  };
+}
+
+function updateSimResults(){
+  const box = document.getElementById('simulator-box');
+  if(!box) return;
+  const brandKey = box.dataset.brand, storeName = box.dataset.store;
+  const base = getSimBaseline(brandKey, storeName);
+  if(!base) return;
+
+  const salesDelta = Number(document.getElementById('sim-sales').value);
+  const foodDeltaPt = Number(document.getElementById('sim-food').value);
+  const laborDeltaPt = Number(document.getElementById('sim-labor').value);
+
+  document.getElementById('sim-sales-val').textContent = pct(salesDelta, 1);
+  document.getElementById('sim-food-val').textContent = pt(foodDeltaPt, 1);
+  document.getElementById('sim-labor-val').textContent = pt(laborDeltaPt, 1);
+
+  const profit0 = base.sales - base.food - base.labor - base.rent - base.other;
+
+  const sales1 = base.sales * (1 + salesDelta/100);
+  const foodRatio1 = Math.max(0, base.foodRatio + foodDeltaPt);
+  const laborRatio1 = Math.max(0, base.laborRatio + laborDeltaPt);
+  const food1 = sales1 * foodRatio1/100;
+  const labor1 = sales1 * laborRatio1/100;
+  const profit1 = sales1 - food1 - labor1 - base.rent - base.other;
+
+  const deltaProfit = profit1 - profit0;
+  const badgeColor = Math.abs(deltaProfit) < 1 ? 'var(--text-dim)' : (deltaProfit >= 0 ? 'var(--good)' : 'var(--bad)');
+
+  const maxBar = Math.max(base.sales, sales1, 1);
+  const bar = (label, before, after, color) => `
+    <div class="mb-3">
+      <div class="flex justify-between text-xs mb-1"><span style="color:var(--text-dim);">${label}</span></div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-xs w-10" style="color:var(--text-dim);">現在</span>
+        <div class="flex-1 rounded-full overflow-hidden" style="background:var(--surface2); height:8px;">
+          <div style="width:${(before/maxBar*100).toFixed(1)}%; background:${color}; height:8px; opacity:.45;"></div>
+        </div>
+        <span class="text-xs font-mono w-28 text-right">${yen(before)}</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs w-10" style="color:var(--text-dim);">変更後</span>
+        <div class="flex-1 rounded-full overflow-hidden" style="background:var(--surface2); height:8px;">
+          <div style="width:${(after/maxBar*100).toFixed(1)}%; background:${color}; height:8px;"></div>
+        </div>
+        <span class="text-xs font-mono w-28 text-right font-semibold">${yen(after)}</span>
+      </div>
+    </div>`;
+
+  document.getElementById('sim-results').innerHTML = `
+    <div class="rounded-xl p-4 mb-4" style="background:var(--surface2);">
+      <p class="text-xs mb-1" style="color:var(--text-dim);">利益の変化</p>
+      <p class="font-display text-3xl" style="color:${badgeColor};">${deltaProfit >= 0 ? '+' : ''}${yen(deltaProfit)}</p>
+      <p class="text-xs mt-1" style="color:var(--text-dim);">現在の利益 ${yen(profit0)} → 変更後の利益 ${yen(profit1)}</p>
+    </div>
+    ${bar('売上', base.sales, sales1, 'var(--gold)')}
+    ${bar('利益', profit0, profit1, 'var(--good)')}
+  `;
+}
+
+/* ============================= 描画統括 ============================= */
+function render(){
+  const root = document.getElementById('app-root');
+  if(state.activeTab === 'overview'){
+    root.innerHTML = renderOverview();
+  } else {
+    root.innerHTML = renderBrandTab(state.activeTab);
+    requestAnimationFrame(()=> updateSimResults());
+  }
+  // タブのアクティブ表示更新
+  document.querySelectorAll('#main-tabs .tab-btn').forEach(el=>{
+    el.classList.toggle('active', el.dataset.brand === state.activeTab);
+  });
+}
+
+function escapeAttr(s){
+  return String(s).replace(/"/g,'&quot;');
+}
+
+/* ============================= イベント処理 ============================= */
+document.addEventListener('click', (e)=>{
+  const el = e.target.closest('[data-action]');
+  if(!el) return;
+  const action = el.dataset.action;
+
+  if(action === 'switch-tab'){
+    state.activeTab = el.dataset.brand;
+    render();
+  }
+  else if(action === 'reset-data'){
+    if(confirm('保存されている全データを削除して初期状態に戻します。よろしいですか？この操作は取り消せません。')){
+      state.data = defaultData();
+      saveData(state.data);
+      for(const b of ['CONA','NAPOLIMAN']) state.selectedStore[b] = state.data[b].stores[0] || null;
+      render();
+    }
+  }
+  else if(action === 'sim-reset'){
+    ['sim-sales','sim-food','sim-labor'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.value = 0;
+    });
+    updateSimResults();
+  }
+});
+
+document.addEventListener('input', (e)=>{
+  if(['sim-sales','sim-food','sim-labor'].includes(e.target.id)){
+    updateSimResults();
+  }
+});
+
+document.addEventListener('change', (e)=>{
+  if(e.target.id === 'store-select'){
+    state.selectedStore[e.target.dataset.brand] = e.target.value;
+    render();
+  }
+});
+
+/* ============================= 初期描画 ============================= */
+render();
+</script>
+</body>
+</html>
