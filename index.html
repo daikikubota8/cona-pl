@@ -50,6 +50,7 @@
   .tab-btn.active[data-brand="overview"]{background:var(--gold); color:#14171c;}
   .tab-btn.active[data-brand="CONA"]{background:var(--wine);}
   .tab-btn.active[data-brand="NAPOLIMAN"]{background:var(--tomato);}
+  .tab-btn.active[data-brand="yoy"]{background:#3f6a8f;}
   input[type="text"], input[type="number"], input[type="month"], select{
     background:var(--surface2); border:1px solid var(--line); color:var(--text);
     border-radius:.5rem; padding:.5rem .7rem; font-size:.875rem; width:100%;
@@ -111,6 +112,7 @@
       <div class="tab-btn active" data-action="switch-tab" data-brand="overview">総評</div>
       <div class="tab-btn" data-action="switch-tab" data-brand="CONA">CONA</div>
       <div class="tab-btn" data-action="switch-tab" data-brand="NAPOLIMAN">ナポリマン</div>
+      <div class="tab-btn" data-action="switch-tab" data-brand="yoy">前年比</div>
     </nav>
   </div>
 </header>
@@ -152,6 +154,18 @@ const APRIL_2026_OTHER_NAPOLIMAN = {"ナポリマン": {"recruit": 0, "travel": 
 const MAY_2026_OTHER_CONA = {"上野": {"recruit": 0, "travel": 165150, "ad": 458668, "utility": 367015, "supplies": 189082, "fee": 100397, "repair": 17000, "sanitation": 213310}, "川崎": {"recruit": 0, "travel": 77277, "ad": 336554, "utility": 563909, "supplies": 220604, "fee": 151838, "repair": 81290, "sanitation": 179530}, "新宿歌舞伎町": {"recruit": 0, "travel": 130344, "ad": 398573, "utility": 364843, "supplies": 180524, "fee": 73221, "repair": 50700, "sanitation": 93909}, "所沢": {"recruit": 0, "travel": 68011, "ad": 211969, "utility": 465183, "supplies": 127494, "fee": 23912, "repair": 0, "sanitation": 187250}, "大宮": {"recruit": 0, "travel": 130239, "ad": 355453, "utility": 350622, "supplies": 194406, "fee": 23151, "repair": 0, "sanitation": 222659}, "渋谷宇田川町": {"recruit": 0, "travel": 110035, "ad": 473365, "utility": 295551, "supplies": 158042, "fee": 20326, "repair": 0, "sanitation": 113626}, "蒲田": {"recruit": 0, "travel": 63576, "ad": 221624, "utility": 224820, "supplies": 268741, "fee": 110894, "repair": 114214, "sanitation": 145292}, "立川": {"recruit": 0, "travel": 129438, "ad": 436320, "utility": 425115, "supplies": 216716, "fee": 130149, "repair": 228400, "sanitation": 168150}, "横浜鶴屋町": {"recruit": 0, "travel": 115722, "ad": 485116, "utility": 290451, "supplies": 342604, "fee": 322098, "repair": 286190, "sanitation": 108150}, "船橋": {"recruit": 0, "travel": 116082, "ad": 439811, "utility": 396015, "supplies": 160175, "fee": 17903, "repair": 81570, "sanitation": 98344}, "溝の口": {"recruit": 0, "travel": 46892, "ad": 244355, "utility": 311140, "supplies": 161480, "fee": 119500, "repair": 71834, "sanitation": 62390}, "錦糸町": {"recruit": 0, "travel": 92184, "ad": 240972, "utility": 320567, "supplies": 264143, "fee": 276561, "repair": 139590, "sanitation": 162400}, "恵比寿": {"recruit": 0, "travel": 34955, "ad": 191464, "utility": 153684, "supplies": 107904, "fee": 142002, "repair": 0, "sanitation": 96519}, "たまプラーザ": {"recruit": 0, "travel": 51393, "ad": 233262, "utility": 481371, "supplies": 379032, "fee": 737485, "repair": 93570, "sanitation": 84279}, "麻布十番": {"recruit": 0, "travel": 62902, "ad": 165937, "utility": 378747, "supplies": 191366, "fee": 138098, "repair": 49858, "sanitation": 92508}, "柏": {"recruit": 0, "travel": 39408, "ad": 410674, "utility": 198280, "supplies": 148429, "fee": 98306, "repair": 0, "sanitation": 111332}, "津田沼": {"recruit": 0, "travel": 70814, "ad": 358505, "utility": 239288, "supplies": 128884, "fee": 46012, "repair": 8000, "sanitation": 159213}, "田町芝浦": {"recruit": 0, "travel": 52244, "ad": 361786, "utility": 415050, "supplies": 211133, "fee": 110481, "repair": 0, "sanitation": 188300}, "町田": {"recruit": 0, "travel": 67730, "ad": 223310, "utility": 167302, "supplies": 238275, "fee": 113788, "repair": 295000, "sanitation": 124070}, "京急蒲田": {"recruit": 0, "travel": 71370, "ad": 289813, "utility": 241197, "supplies": 225713, "fee": 16755, "repair": 46209, "sanitation": 101500}, "西新宿一丁目": {"recruit": 0, "travel": 144415, "ad": 507704, "utility": 545965, "supplies": 216764, "fee": 35482, "repair": 0, "sanitation": 126610}, "新宿東南口": {"recruit": 0, "travel": 76820, "ad": 479556, "utility": 556232, "supplies": 170313, "fee": 19132, "repair": 0, "sanitation": 113360}, "横浜西口": {"recruit": 0, "travel": 100629, "ad": 453732, "utility": 122767, "supplies": 302358, "fee": 24170, "repair": 0, "sanitation": 80077}};
 const MAY_2026_OTHER_NAPOLIMAN = {"ナポリマン": {"recruit": 0, "travel": 84278, "ad": 240863, "utility": 519271, "supplies": 289284, "fee": 660643, "repair": 38060, "sanitation": 97930}};
 
+const JUNE_2026_CONA = {"上野": {"sales": 8381474, "food": 2244646, "labor": 2545270, "rent": 641870, "other": 1783997}, "川崎": {"sales": 14079627, "food": 3747533, "labor": 3346567, "rent": 910560, "other": 1725213}, "新宿歌舞伎町": {"sales": 10039034, "food": 2560279, "labor": 2805344, "rent": 958900, "other": 1722828}, "所沢": {"sales": 7284134, "food": 1905560, "labor": 2107831, "rent": 730000, "other": 1074410}, "大宮": {"sales": 15205773, "food": 4006717, "labor": 3440698, "rent": 1320000, "other": 1763687}, "渋谷宇田川町": {"sales": 8979497, "food": 2399917, "labor": 3027453, "rent": 960000, "other": 1702595}, "蒲田": {"sales": 0, "food": 252151, "labor": 787775, "rent": 480000, "other": 856354}, "立川": {"sales": 9936682, "food": 2756208, "labor": 3076122, "rent": 990090, "other": 1596582}, "横浜鶴屋町": {"sales": 13077330, "food": 3495191, "labor": 3061634, "rent": 900000, "other": 2157139}, "船橋": {"sales": 11819160, "food": 3069456, "labor": 2780539, "rent": 1648000, "other": 1495568}, "溝の口": {"sales": 8133794, "food": 2199588, "labor": 2264875, "rent": 440000, "other": 1365539}, "錦糸町": {"sales": 10148484, "food": 2756815, "labor": 2902946, "rent": 800000, "other": 1631965}, "恵比寿": {"sales": 3763538, "food": 1113929, "labor": 1191552, "rent": 350000, "other": 893993}, "たまプラーザ": {"sales": 7886567, "food": 2475633, "labor": 2485052, "rent": 433000, "other": 2277422}, "麻布十番": {"sales": 5256565, "food": 1503601, "labor": 1977665, "rent": 591600, "other": 1052670}, "柏": {"sales": 9097712, "food": 2361229, "labor": 2118687, "rent": 503900, "other": 1429703}, "津田沼": {"sales": 7668710, "food": 2052180, "labor": 2018718, "rent": 700296, "other": 1534748}, "田町芝浦": {"sales": 8526357, "food": 2360824, "labor": 2361430, "rent": 1072500, "other": 1802208}, "町田": {"sales": 6064775, "food": 1694893, "labor": 2415956, "rent": 560000, "other": 1106210}, "京急蒲田": {"sales": 9924262, "food": 2809408, "labor": 2540634, "rent": 650000, "other": 1617129}, "西新宿一丁目": {"sales": 13700771, "food": 3781215, "labor": 3131831, "rent": 1895440, "other": 2452700}, "新宿東南口": {"sales": 9946472, "food": 2682394, "labor": 2580558, "rent": 1845516, "other": 1988381}, "横浜西口": {"sales": 8955783, "food": 2286300, "labor": 2794713, "rent": 898380, "other": 1595144}};
+const JUNE_2026_NAPOLIMAN = {"ナポリマン": {"sales": 6835920, "food": 2259754, "labor": 2112175, "rent": 781614, "other": 1733384}};
+
+const JUNE_2026_OTHER_CONA = {"上野": {"recruit": 0, "travel": 94231, "ad": 484534, "utility": 382125, "supplies": 155847, "fee": 140703, "repair": 149928, "sanitation": 82710}, "川崎": {"recruit": 0, "travel": 70630, "ad": 323393, "utility": 336455, "supplies": 262975, "fee": 196006, "repair": 0, "sanitation": 44910}, "新宿歌舞伎町": {"recruit": 0, "travel": 74664, "ad": 359909, "utility": 434771, "supplies": 176250, "fee": 82409, "repair": 90000, "sanitation": 66924}, "所沢": {"recruit": 0, "travel": 63487, "ad": 166155, "utility": 317484, "supplies": 123436, "fee": 33100, "repair": 0, "sanitation": 40870}, "大宮": {"recruit": 0, "travel": 109320, "ad": 315481, "utility": 526026, "supplies": 201495, "fee": 38862, "repair": 0, "sanitation": 133460}, "渋谷宇田川町": {"recruit": 0, "travel": 113786, "ad": 404399, "utility": 187591, "supplies": 186060, "fee": 33100, "repair": 168502, "sanitation": 88400}, "蒲田": {"recruit": 0, "travel": 64043, "ad": 98456, "utility": 305942, "supplies": 16037, "fee": 33100, "repair": 0, "sanitation": 101937}, "立川": {"recruit": 0, "travel": 153761, "ad": 380366, "utility": 302016, "supplies": 232223, "fee": 122257, "repair": 0, "sanitation": 53000}, "横浜鶴屋町": {"recruit": 0, "travel": 103697, "ad": 390405, "utility": 527702, "supplies": 267318, "fee": 269813, "repair": 69960, "sanitation": 63650}, "船橋": {"recruit": 0, "travel": 81195, "ad": 379618, "utility": 276890, "supplies": 202300, "fee": 34010, "repair": 106570, "sanitation": 107964}, "溝の口": {"recruit": 0, "travel": 47460, "ad": 219167, "utility": 232027, "supplies": 199780, "fee": 144084, "repair": 200000, "sanitation": 37890}, "錦糸町": {"recruit": 0, "travel": 70453, "ad": 229630, "utility": 450164, "supplies": 165421, "fee": 276018, "repair": 0, "sanitation": 68467}, "恵比寿": {"recruit": 0, "travel": 48348, "ad": 156464, "utility": 184020, "supplies": 95542, "fee": 128968, "repair": 75000, "sanitation": 56580}, "たまプラーザ": {"recruit": 0, "travel": 49862, "ad": 158500, "utility": 324533, "supplies": 244287, "fee": 769126, "repair": 339506, "sanitation": 86079}, "麻布十番": {"recruit": 0, "travel": 64888, "ad": 149921, "utility": 252050, "supplies": 127274, "fee": 125184, "repair": 30800, "sanitation": 77730}, "柏": {"recruit": 0, "travel": 49059, "ad": 362740, "utility": 403100, "supplies": 131536, "fee": 120207, "repair": 13000, "sanitation": 49002}, "津田沼": {"recruit": 0, "travel": 63350, "ad": 380952, "utility": 378260, "supplies": 133881, "fee": 49721, "repair": 0, "sanitation": 64833}, "田町芝浦": {"recruit": 0, "travel": 66893, "ad": 372894, "utility": 218412, "supplies": 227018, "fee": 125800, "repair": 96003, "sanitation": 86300}, "町田": {"recruit": 0, "travel": 56826, "ad": 227887, "utility": 137085, "supplies": 173156, "fee": 40108, "repair": 0, "sanitation": 110000}, "京急蒲田": {"recruit": 0, "travel": 73497, "ad": 260001, "utility": 337177, "supplies": 167459, "fee": 33100, "repair": 0, "sanitation": 83776}, "西新宿一丁目": {"recruit": 0, "travel": 113315, "ad": 520919, "utility": 636007, "supplies": 200426, "fee": 38600, "repair": 0, "sanitation": 94700}, "新宿東南口": {"recruit": 0, "travel": 99538, "ad": 469097, "utility": 280592, "supplies": 176575, "fee": 35100, "repair": 0, "sanitation": 99848}, "横浜西口": {"recruit": 0, "travel": 85604, "ad": 491573, "utility": 359391, "supplies": 147514, "fee": 34160, "repair": 15718, "sanitation": 31640}};
+const JUNE_2026_OTHER_NAPOLIMAN = {"ナポリマン": {"recruit": 0, "travel": 81688, "ad": 182134, "utility": 285670, "supplies": 173870, "fee": 702235, "repair": 0, "sanitation": 73210}};
+
+// 前年同月比較用（2025年4月・5月実績）
+const Y2025_04_CONA = {"上野": {"sales": 7415731, "food": 2016207, "labor": 1882056, "rent": 641870, "other": 1724364, "otherBreakdown": {"recruit": 0, "travel": 79738, "ad": 408293, "utility": 518308, "supplies": 169736, "fee": 159599, "repair": 0, "sanitation": 145210}}, "新宿歌舞伎町": {"sales": 10979524, "food": 2889277, "labor": 3144089, "rent": 958900, "other": 1716754, "otherBreakdown": {"recruit": 0, "travel": 117680, "ad": 462361, "utility": 445649, "supplies": 145090, "fee": 112360, "repair": 0, "sanitation": 72950}}, "所沢": {"sales": 7125342, "food": 1945112, "labor": 1720038, "rent": 730000, "other": 1218404, "otherBreakdown": {"recruit": 0, "travel": 41611, "ad": 178640, "utility": 360377, "supplies": 91702, "fee": 22800, "repair": 86681, "sanitation": 177370}}, "大宮": {"sales": 14274722, "food": 3799413, "labor": 3065839, "rent": 1200000, "other": 1794271, "otherBreakdown": {"recruit": 0, "travel": 71773, "ad": 318353, "utility": 429844, "supplies": 219476, "fee": 22800, "repair": 75000, "sanitation": 206080}}, "渋谷宇田川町": {"sales": 9751890, "food": 2478463, "labor": 2328722, "rent": 960000, "other": 1534778, "otherBreakdown": {"recruit": 0, "travel": 92560, "ad": 419472, "utility": 198601, "supplies": 225685, "fee": 22800, "repair": 0, "sanitation": 65200}}, "蒲田": {"sales": 8882508, "food": 2480376, "labor": 1836941, "rent": 480000, "other": 1366311, "otherBreakdown": {"recruit": 0, "travel": 33259, "ad": 263222, "utility": 352180, "supplies": 150688, "fee": 101176, "repair": 107408, "sanitation": 40614}}, "立川": {"sales": 9748150, "food": 2689495, "labor": 2468630, "rent": 974700, "other": 1495423, "otherBreakdown": {"recruit": 0, "travel": 70845, "ad": 468022, "utility": 87266, "supplies": 157980, "fee": 79887, "repair": 181134, "sanitation": 161500}}, "横浜鶴屋町": {"sales": 13774162, "food": 3826271, "labor": 2919523, "rent": 900000, "other": 2451414, "otherBreakdown": {"recruit": 40000, "travel": 117633, "ad": 534416, "utility": 664984, "supplies": 231861, "fee": 289137, "repair": 0, "sanitation": 149450}}, "船橋": {"sales": 10445964, "food": 2876594, "labor": 2814698, "rent": 1600000, "other": 1434490, "otherBreakdown": {"recruit": 0, "travel": 101290, "ad": 407810, "utility": 274955, "supplies": 143587, "fee": 22800, "repair": 0, "sanitation": 203464}}, "溝の口": {"sales": 7418884, "food": 2273036, "labor": 1898945, "rent": 440000, "other": 1258471, "otherBreakdown": {"recruit": 0, "travel": 110802, "ad": 244611, "utility": 212810, "supplies": 143919, "fee": 90027, "repair": 159770, "sanitation": 36390}}, "川崎": {"sales": 13683917, "food": 3926727, "labor": 2972585, "rent": 910560, "other": 1899738, "otherBreakdown": {"recruit": 0, "travel": 105186, "ad": 365559, "utility": 118113, "supplies": 239345, "fee": 174857, "repair": 364760, "sanitation": 93770}}, "錦糸町": {"sales": 8762158, "food": 2376553, "labor": 2231770, "rent": 800000, "other": 1464015, "otherBreakdown": {"recruit": 0, "travel": 81272, "ad": 246589, "utility": 408291, "supplies": 151231, "fee": 181179, "repair": 0, "sanitation": 49450}}, "恵比寿": {"sales": 4564787, "food": 1316926, "labor": 1322433, "rent": 350000, "other": 881146, "otherBreakdown": {"recruit": 0, "travel": 53571, "ad": 227696, "utility": 119073, "supplies": 103124, "fee": 137694, "repair": 65400, "sanitation": 45917}}, "たまプラーザ": {"sales": 7300644, "food": 2088538, "labor": 1794830, "rent": 433000, "other": 1664558, "otherBreakdown": {"recruit": 0, "travel": 73989, "ad": 134979, "utility": 142037, "supplies": 184186, "fee": 626250, "repair": 54500, "sanitation": 163216}}, "麻布十番": {"sales": 5812700, "food": 1700217, "labor": 1576754, "rent": 570000, "other": 1027697, "otherBreakdown": {"recruit": 0, "travel": 45264, "ad": 183774, "utility": 242264, "supplies": 136747, "fee": 96123, "repair": 0, "sanitation": 74218}}, "柏": {"sales": 8612259, "food": 2337541, "labor": 1973468, "rent": 503900, "other": 1323405, "otherBreakdown": {"recruit": 0, "travel": 43208, "ad": 414891, "utility": 310500, "supplies": 123783, "fee": 66284, "repair": 0, "sanitation": 50409}}, "津田沼": {"sales": 7432067, "food": 2146135, "labor": 2032467, "rent": 687146, "other": 1430743, "otherBreakdown": {"recruit": 0, "travel": 30215, "ad": 328628, "utility": 302127, "supplies": 99337, "fee": 55780, "repair": 0, "sanitation": 47833}}, "田町芝浦": {"sales": 8205402, "food": 2390228, "labor": 2061312, "rent": 1072500, "other": 1431383, "otherBreakdown": {"recruit": 160000, "travel": 34652, "ad": 242364, "utility": 151048, "supplies": 128502, "fee": 40403, "repair": 0, "sanitation": 57000}}};
+const Y2025_04_NAPOLIMAN = {"ナポリマン": {"sales": 7213263, "food": 2290487, "labor": 1573870, "rent": 688159, "other": 1642468, "otherBreakdown": {"recruit": 0, "travel": 68831, "ad": 181543, "utility": 279335, "supplies": 157099, "fee": 688538, "repair": 0, "sanitation": 64710}}};
+const Y2025_05_CONA = {"上野": {"sales": 8725070, "food": 2369874, "labor": 2093831, "rent": 641870, "other": 1607111, "otherBreakdown": {"recruit": 0, "travel": 82510, "ad": 453661, "utility": 434004, "supplies": 116318, "fee": 138725, "repair": 45050, "sanitation": 106590}}, "新宿歌舞伎町": {"sales": 11792672, "food": 3102093, "labor": 3635495, "rent": 958900, "other": 1933443, "otherBreakdown": {"recruit": 0, "travel": 140247, "ad": 492974, "utility": 446380, "supplies": 162479, "fee": 113108, "repair": 0, "sanitation": 254360}}, "所沢": {"sales": 8136587, "food": 2129906, "labor": 1910758, "rent": 730000, "other": 1256262, "otherBreakdown": {"recruit": 0, "travel": 42380, "ad": 206233, "utility": 426962, "supplies": 121340, "fee": 36644, "repair": 0, "sanitation": 167750}}, "大宮": {"sales": 14918436, "food": 3979771, "labor": 3117388, "rent": 1200000, "other": 1570084, "otherBreakdown": {"recruit": 0, "travel": 102861, "ad": 320008, "utility": 285128, "supplies": 162962, "fee": 91589, "repair": 45100, "sanitation": 168109}}, "渋谷宇田川町": {"sales": 10063696, "food": 2613168, "labor": 2477537, "rent": 960000, "other": 1714588, "otherBreakdown": {"recruit": 0, "travel": 90393, "ad": 468514, "utility": 310117, "supplies": 172542, "fee": 40227, "repair": 40239, "sanitation": 97556}}, "蒲田": {"sales": 9343513, "food": 2604422, "labor": 2165359, "rent": 480000, "other": 1532864, "otherBreakdown": {"recruit": 70000, "travel": 37048, "ad": 259552, "utility": 226053, "supplies": 180680, "fee": 133299, "repair": 0, "sanitation": 324386}}, "立川": {"sales": 10152695, "food": 2783636, "labor": 2472060, "rent": 990090, "other": 1607654, "otherBreakdown": {"recruit": 0, "travel": 65686, "ad": 502769, "utility": 403579, "supplies": 170886, "fee": 78017, "repair": 31713, "sanitation": 96250}}, "横浜鶴屋町": {"sales": 13703669, "food": 3798782, "labor": 2875323, "rent": 900000, "other": 2125371, "otherBreakdown": {"recruit": 40000, "travel": 90528, "ad": 585297, "utility": 302065, "supplies": 221239, "fee": 298504, "repair": 12500, "sanitation": 164920}}, "船橋": {"sales": 11789660, "food": 3208542, "labor": 2901569, "rent": 1648000, "other": 1538351, "otherBreakdown": {"recruit": 0, "travel": 75544, "ad": 453490, "utility": 400601, "supplies": 174158, "fee": 22800, "repair": 68600, "sanitation": 162844}}, "溝の口": {"sales": 8197126, "food": 2288438, "labor": 2192957, "rent": 440000, "other": 1366256, "otherBreakdown": {"recruit": 0, "travel": 84657, "ad": 248043, "utility": 361040, "supplies": 156252, "fee": 80818, "repair": 55446, "sanitation": 100550}}, "川崎": {"sales": 15204454, "food": 4211723, "labor": 3385874, "rent": 910560, "other": 2228032, "otherBreakdown": {"recruit": 0, "travel": 110924, "ad": 369250, "utility": 570168, "supplies": 252910, "fee": 217703, "repair": 21021, "sanitation": 224310}}, "錦糸町": {"sales": 9494495, "food": 2552465, "labor": 2290788, "rent": 800000, "other": 1406089, "otherBreakdown": {"recruit": 0, "travel": 58820, "ad": 229623, "utility": 289597, "supplies": 133246, "fee": 197473, "repair": 0, "sanitation": 136767}}, "恵比寿": {"sales": 4419737, "food": 1401285, "labor": 1465521, "rent": 350000, "other": 964187, "otherBreakdown": {"recruit": 100000, "travel": 13979, "ad": 229500, "utility": 153315, "supplies": 126131, "fee": 113980, "repair": 0, "sanitation": 94294}}, "たまプラーザ": {"sales": 7243319, "food": 2114567, "labor": 2035094, "rent": 433000, "other": 1857928, "otherBreakdown": {"recruit": 0, "travel": 71116, "ad": 172137, "utility": 410658, "supplies": 170518, "fee": 551750, "repair": 29429, "sanitation": 174024}}, "麻布十番": {"sales": 5518070, "food": 1571620, "labor": 1584067, "rent": 570000, "other": 1411269, "otherBreakdown": {"recruit": 0, "travel": 51533, "ad": 194338, "utility": 302855, "supplies": 170593, "fee": 85100, "repair": 93104, "sanitation": 235776}}, "柏": {"sales": 8873314, "food": 2348435, "labor": 1984375, "rent": 503900, "other": 1415410, "otherBreakdown": {"recruit": 40000, "travel": 40932, "ad": 428120, "utility": 207876, "supplies": 191996, "fee": 103197, "repair": 0, "sanitation": 127712}}, "津田沼": {"sales": 7899395, "food": 2109011, "labor": 1768343, "rent": 687146, "other": 1543772, "otherBreakdown": {"recruit": 0, "travel": 34010, "ad": 407478, "utility": 191387, "supplies": 151611, "fee": 68061, "repair": 14520, "sanitation": 172493}}, "田町芝浦": {"sales": 8457285, "food": 2480231, "labor": 2240117, "rent": 1072500, "other": 1807258, "otherBreakdown": {"recruit": 0, "travel": 37692, "ad": 281234, "utility": 502801, "supplies": 238423, "fee": 36748, "repair": 0, "sanitation": 81500}}, "町田": {"sales": 2283849, "food": 837712, "labor": 1208354, "rent": 560000, "other": 3086969, "otherBreakdown": {"recruit": 0, "travel": 27686, "ad": 0, "utility": 0, "supplies": 2445307, "fee": 223164, "repair": 72930, "sanitation": 38480}}};
+const Y2025_05_NAPOLIMAN = {"ナポリマン": {"sales": 7198648, "food": 2294311, "labor": 1843805, "rent": 677735, "other": 1898128, "otherBreakdown": {"recruit": 0, "travel": 63582, "ad": 186513, "utility": 503730, "supplies": 178836, "fee": 649376, "repair": 0, "sanitation": 132870}}};
+
 function defaultData(){
   const conaStores = [
     '蒲田','京急蒲田','川崎','横浜鶴屋町','横浜西口','新宿歌舞伎町','新宿東南口','西新宿一丁目',
@@ -159,22 +173,35 @@ function defaultData(){
     '船橋','上野','津田沼','たまプラーザ','町田'
   ];
   const conaData = {};
+  const conaYoy = {};
   conaStores.forEach(s => {
     conaData[s] = {};
     if(APRIL_2026_CONA[s]) conaData[s]['2026-04'] = { ...APRIL_2026_CONA[s], otherBreakdown: APRIL_2026_OTHER_CONA[s] ? {...APRIL_2026_OTHER_CONA[s]} : undefined };
     if(MAY_2026_CONA[s]) conaData[s]['2026-05'] = { ...MAY_2026_CONA[s], otherBreakdown: MAY_2026_OTHER_CONA[s] ? {...MAY_2026_OTHER_CONA[s]} : undefined };
+    if(JUNE_2026_CONA[s]) conaData[s]['2026-06'] = { ...JUNE_2026_CONA[s], otherBreakdown: JUNE_2026_OTHER_CONA[s] ? {...JUNE_2026_OTHER_CONA[s]} : undefined };
+    conaYoy[s] = {};
+    if(Y2025_04_CONA[s]) conaYoy[s]['2025-04'] = { ...Y2025_04_CONA[s] };
+    if(Y2025_05_CONA[s]) conaYoy[s]['2025-05'] = { ...Y2025_05_CONA[s] };
   });
   return {
     CONA: {
       stores: conaStores,
-      data: conaData
+      data: conaData,
+      yoy: conaYoy
     },
     NAPOLIMAN: {
       stores: ['ナポリマン'],
       data: {
         'ナポリマン': {
           '2026-04': { ...APRIL_2026_NAPOLIMAN['ナポリマン'], otherBreakdown: {...APRIL_2026_OTHER_NAPOLIMAN['ナポリマン']} },
-          '2026-05': { ...MAY_2026_NAPOLIMAN['ナポリマン'], otherBreakdown: {...MAY_2026_OTHER_NAPOLIMAN['ナポリマン']} }
+          '2026-05': { ...MAY_2026_NAPOLIMAN['ナポリマン'], otherBreakdown: {...MAY_2026_OTHER_NAPOLIMAN['ナポリマン']} },
+          '2026-06': { ...JUNE_2026_NAPOLIMAN['ナポリマン'], otherBreakdown: {...JUNE_2026_OTHER_NAPOLIMAN['ナポリマン']} }
+        }
+      },
+      yoy: {
+        'ナポリマン': {
+          '2025-04': { ...Y2025_04_NAPOLIMAN['ナポリマン'] },
+          '2025-05': { ...Y2025_05_NAPOLIMAN['ナポリマン'] }
         }
       }
     }
@@ -216,14 +243,22 @@ function migrateConaStores(parsed){
     if(MAY_2026_CONA[s] && !parsed.CONA.data[s]['2026-05']){
       parsed.CONA.data[s]['2026-05'] = { ...MAY_2026_CONA[s], otherBreakdown: MAY_2026_OTHER_CONA[s] ? {...MAY_2026_OTHER_CONA[s]} : undefined };
     }
+    if(JUNE_2026_CONA[s] && !parsed.CONA.data[s]['2026-06']){
+      parsed.CONA.data[s]['2026-06'] = { ...JUNE_2026_CONA[s], otherBreakdown: JUNE_2026_OTHER_CONA[s] ? {...JUNE_2026_OTHER_CONA[s]} : undefined };
+    }
     // 既に月データはあるが内訳が無い場合は内訳だけ追加
-    ['2026-04','2026-05'].forEach(ym=>{
+    ['2026-04','2026-05','2026-06'].forEach(ym=>{
       const entry = parsed.CONA.data[s][ym];
       if(entry && !entry.otherBreakdown){
-        const src = ym === '2026-04' ? APRIL_2026_OTHER_CONA[s] : MAY_2026_OTHER_CONA[s];
+        const src = ym === '2026-04' ? APRIL_2026_OTHER_CONA[s] : (ym === '2026-05' ? MAY_2026_OTHER_CONA[s] : JUNE_2026_OTHER_CONA[s]);
         if(src) entry.otherBreakdown = {...src};
       }
     });
+    // 前年同月比較用データ(yoy)を補完
+    if(!parsed.CONA.yoy) parsed.CONA.yoy = {};
+    if(!parsed.CONA.yoy[s]) parsed.CONA.yoy[s] = {};
+    if(Y2025_04_CONA[s] && !parsed.CONA.yoy[s]['2025-04']) parsed.CONA.yoy[s]['2025-04'] = { ...Y2025_04_CONA[s] };
+    if(Y2025_05_CONA[s] && !parsed.CONA.yoy[s]['2025-05']) parsed.CONA.yoy[s]['2025-05'] = { ...Y2025_05_CONA[s] };
   });
   if(parsed.NAPOLIMAN){
     if(!parsed.NAPOLIMAN.stores.includes('ナポリマン')) parsed.NAPOLIMAN.stores.push('ナポリマン');
@@ -234,13 +269,20 @@ function migrateConaStores(parsed){
     if(!parsed.NAPOLIMAN.data['ナポリマン']['2026-05']){
       parsed.NAPOLIMAN.data['ナポリマン']['2026-05'] = { ...MAY_2026_NAPOLIMAN['ナポリマン'], otherBreakdown: {...MAY_2026_OTHER_NAPOLIMAN['ナポリマン']} };
     }
-    ['2026-04','2026-05'].forEach(ym=>{
+    if(!parsed.NAPOLIMAN.data['ナポリマン']['2026-06']){
+      parsed.NAPOLIMAN.data['ナポリマン']['2026-06'] = { ...JUNE_2026_NAPOLIMAN['ナポリマン'], otherBreakdown: {...JUNE_2026_OTHER_NAPOLIMAN['ナポリマン']} };
+    }
+    ['2026-04','2026-05','2026-06'].forEach(ym=>{
       const entry = parsed.NAPOLIMAN.data['ナポリマン'][ym];
       if(entry && !entry.otherBreakdown){
-        const src = ym === '2026-04' ? APRIL_2026_OTHER_NAPOLIMAN['ナポリマン'] : MAY_2026_OTHER_NAPOLIMAN['ナポリマン'];
+        const src = ym === '2026-04' ? APRIL_2026_OTHER_NAPOLIMAN['ナポリマン'] : (ym === '2026-05' ? MAY_2026_OTHER_NAPOLIMAN['ナポリマン'] : JUNE_2026_OTHER_NAPOLIMAN['ナポリマン']);
         if(src) entry.otherBreakdown = {...src};
       }
     });
+    if(!parsed.NAPOLIMAN.yoy) parsed.NAPOLIMAN.yoy = {};
+    if(!parsed.NAPOLIMAN.yoy['ナポリマン']) parsed.NAPOLIMAN.yoy['ナポリマン'] = {};
+    if(!parsed.NAPOLIMAN.yoy['ナポリマン']['2025-04']) parsed.NAPOLIMAN.yoy['ナポリマン']['2025-04'] = { ...Y2025_04_NAPOLIMAN['ナポリマン'] };
+    if(!parsed.NAPOLIMAN.yoy['ナポリマン']['2025-05']) parsed.NAPOLIMAN.yoy['ナポリマン']['2025-05'] = { ...Y2025_05_NAPOLIMAN['ナポリマン'] };
   }
 }
 function saveData(d){
@@ -250,7 +292,8 @@ function saveData(d){
 let state = {
   data: loadData(),
   activeTab: 'overview',
-  selectedStore: { CONA: null, NAPOLIMAN: null }
+  selectedStore: { CONA: null, NAPOLIMAN: null },
+  yoy: { brand: 'CONA', month: '2026-05' }
 };
 // 初期選択店舗をセット
 for(const b of ['CONA','NAPOLIMAN']){
@@ -537,6 +580,103 @@ function renderOverview(){
           </div>
         ` : ''}
       `}
+    </div>`;
+}
+
+/* ============================= レンダリング：前年比 ============================= */
+function renderYoyTab(){
+  const brandKey = state.yoy.brand;
+  const month = state.yoy.month;
+  const yoyMonth = '2025-' + month.split('-')[1];
+  const brand = state.data[brandKey];
+  const meta = BRAND_META[brandKey];
+
+  const rows = brand.stores.map(store => {
+    const cur = brand.data[store] ? brand.data[store][month] : null;
+    const prev = (brand.yoy && brand.yoy[store]) ? brand.yoy[store][yoyMonth] : null;
+    return { store, cur, prev };
+  }).filter(r => r.cur);
+
+  const withPrev = rows.filter(r => r.prev);
+  const withoutPrev = rows.filter(r => !r.prev);
+  withPrev.sort((a,b)=>{
+    const dp = pctChange(computeProfit(a.cur), computeProfit(a.prev));
+    const dq = pctChange(computeProfit(b.cur), computeProfit(b.prev));
+    return (dp===null?0:dp) - (dq===null?0:dq);
+  });
+
+  const cell = (label, curVal, prevVal, isRatioMetric, isCostMetric) => {
+    if(prevVal === null || prevVal === undefined){
+      return `<td><span style="color:var(--text-dim);">—</span></td>`;
+    }
+    if(isRatioMetric){
+      const diff = curVal - prevVal;
+      const bad = isCostMetric ? diff > 0 : diff < 0;
+      const color = Math.abs(diff) < 0.05 ? 'var(--text-dim)' : (bad ? 'var(--bad)' : 'var(--good)');
+      return `<td>
+        <div class="font-mono text-xs" style="color:var(--text-dim);">${prevVal.toFixed(1)}% → </div>
+        <div class="font-mono">${curVal.toFixed(1)}%</div>
+        <div class="text-xs" style="color:${color};">${pt(diff)}</div>
+      </td>`;
+    }
+    const change = pctChange(curVal, prevVal);
+    const bad = isCostMetric ? (change!==null && change>0) : (change!==null && change<0);
+    const color = change===null ? 'var(--text-dim)' : (Math.abs(change)<1 ? 'var(--text-dim)' : (bad?'var(--bad)':'var(--good)'));
+    return `<td>
+      <div class="font-mono text-xs" style="color:var(--text-dim);">${yen(prevVal)} → </div>
+      <div class="font-mono">${yen(curVal)}</div>
+      <div class="text-xs" style="color:${color};">${change===null?'—':pct(change)}</div>
+    </td>`;
+  };
+
+  const rowHtml = (r) => {
+    const cur = r.cur, prev = r.prev;
+    const profitCur = computeProfit(cur);
+    const profitPrev = prev ? computeProfit(prev) : null;
+    const foodRatioCur = cur.sales ? cur.food/cur.sales*100 : null;
+    const foodRatioPrev = (prev && prev.sales) ? prev.food/prev.sales*100 : null;
+    const laborRatioCur = cur.sales ? cur.labor/cur.sales*100 : null;
+    const laborRatioPrev = (prev && prev.sales) ? prev.labor/prev.sales*100 : null;
+    return `<tr>
+      <td>${r.store}</td>
+      ${cell('売上', cur.sales, prev?prev.sales:null, false, false)}
+      ${cell('食材費率', foodRatioCur, foodRatioPrev, true, true)}
+      ${cell('人件費率', laborRatioCur, laborRatioPrev, true, true)}
+      ${cell('利益', profitCur, profitPrev, false, false)}
+    </tr>`;
+  };
+
+  const tableRows = [...withPrev, ...withoutPrev].map(rowHtml).join('');
+
+  return `
+    <div class="fade-in">
+      <div class="mb-6">
+        <p class="text-xs uppercase tracking-widest" style="color:#3f6a8f;">Year-over-year</p>
+        <h2 class="font-display text-3xl mt-1">前年同月比較</h2>
+        <p class="text-sm mt-2" style="color:var(--text-dim);">昨年（2025年）と今年（2026年）の同じ月を比較します。データがある月は4月・5月のみです。</p>
+      </div>
+
+      <div class="flex items-center gap-3 flex-wrap mb-5">
+        <div class="flex gap-2">
+          <div class="pill ${brandKey==='CONA'?'selected-CONA':''}" data-action="yoy-brand" data-brand="CONA">CONA</div>
+          <div class="pill ${brandKey==='NAPOLIMAN'?'selected-NAPOLIMAN':''}" data-action="yoy-brand" data-brand="NAPOLIMAN">ナポリマン</div>
+        </div>
+        <div class="flex gap-2">
+          <div class="pill ${month==='2026-04'?'selected-CONA':''}" data-action="yoy-month" data-month="2026-04">2026年4月</div>
+          <div class="pill ${month==='2026-05'?'selected-CONA':''}" data-action="yoy-month" data-month="2026-05">2026年5月</div>
+          <div class="pill ${month==='2026-06'?'selected-CONA':''}" data-action="yoy-month" data-month="2026-06">2026年6月</div>
+        </div>
+      </div>
+
+      <div class="surface rounded-xl p-5 overflow-x-auto">
+        ${rows.length === 0 ? `<p class="text-sm" style="color:var(--text-dim);">この月のデータがありません。</p>` : `
+        <table>
+          <thead><tr><th style="text-align:left;">店舗</th><th>売上（前年→今年）</th><th>食材費率</th><th>人件費率</th><th>利益（前年→今年）</th></tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+        ${withoutPrev.length ? `<p class="text-xs mt-3" style="color:var(--text-dim);">※ ${withoutPrev.map(r=>r.store).join('・')} は前年同月のデータがないため比較していません（新規開店店舗など）。</p>` : ''}
+        `}
+      </div>
     </div>`;
 }
 
@@ -919,6 +1059,8 @@ function render(){
   const root = document.getElementById('app-root');
   if(state.activeTab === 'overview'){
     root.innerHTML = renderOverview();
+  } else if(state.activeTab === 'yoy'){
+    root.innerHTML = renderYoyTab();
   } else {
     root.innerHTML = renderBrandTab(state.activeTab);
     requestAnimationFrame(()=> updateSimResults());
@@ -957,6 +1099,14 @@ document.addEventListener('click', (e)=>{
       if(el) el.value = 0;
     });
     updateSimResults();
+  }
+  else if(action === 'yoy-brand'){
+    state.yoy.brand = el.dataset.brand;
+    render();
+  }
+  else if(action === 'yoy-month'){
+    state.yoy.month = el.dataset.month;
+    render();
   }
 });
 
