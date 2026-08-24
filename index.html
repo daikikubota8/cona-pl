@@ -50,6 +50,7 @@
   .tab-btn.active[data-brand="CONA"]{background:var(--wine);}
   .tab-btn.active[data-brand="NAPOLIMAN"]{background:var(--tomato);}
   .tab-btn.active[data-brand="yoy"]{background:#3f6a8f;}
+  .tab-btn.active[data-brand="alerts"]{background:var(--bad);}
   input[type="text"], input[type="number"], input[type="month"], select{
     background:var(--surface2); border:1px solid var(--line); color:var(--text);
     border-radius:.5rem; padding:.5rem .7rem; font-size:.875rem; width:100%;
@@ -111,6 +112,7 @@
       <div class="tab-btn active" data-action="switch-tab" data-brand="CONA">CONA</div>
       <div class="tab-btn" data-action="switch-tab" data-brand="NAPOLIMAN">ナポリマン</div>
       <div class="tab-btn" data-action="switch-tab" data-brand="yoy">前年比</div>
+      <div class="tab-btn" data-action="switch-tab" data-brand="alerts">要注意店舗</div>
     </nav>
   </div>
 </header>
@@ -315,7 +317,8 @@ let state = {
   data: loadData(),
   activeTab: 'CONA',
   selectedStore: { CONA: null, NAPOLIMAN: null },
-  yoy: { brand: 'CONA', month: '2026-05' }
+  yoy: { brand: 'CONA', month: '2026-05' },
+  alerts: { brand: 'ALL', month: '2026-07' }
 };
 // 初期選択店舗をセット
 for(const b of ['CONA','NAPOLIMAN']){
@@ -357,6 +360,91 @@ function metricValue(entry, key){
 function pctChange(cur, prev){
   if(cur === null || prev === null || prev === undefined || cur === undefined || prev === 0) return null;
   return ((cur - prev) / Math.abs(prev)) * 100;
+}
+
+/* ============================= レンダリング：要注意店舗 ============================= */
+function renderAlertsTab(){
+  const selectedBrand = state.alerts.brand;
+  const month = state.alerts.month;
+  const previousYearMonth = '2025-' + month.split('-')[1];
+  const brandKeys = selectedBrand === 'ALL' ? ['CONA','NAPOLIMAN'] : [selectedBrand];
+  const salesRows = [], foodRows = [], laborRows = [];
+
+  brandKeys.forEach(brandKey => {
+    const brand = state.data[brandKey];
+    brand.stores.forEach(store => {
+      const current = brand.data[store] ? brand.data[store][month] : null;
+      const previous = brand.yoy && brand.yoy[store] ? brand.yoy[store][previousYearMonth] : null;
+      if(!current || !current.sales || current.sales <= 0) return;
+      const target = getTargets(store);
+
+      if(previous && previous.sales > 0 && current.sales < previous.sales){
+        const diffAmount = current.sales - previous.sales;
+        const diffPct = pctChange(current.sales, previous.sales);
+        salesRows.push({ brandKey, store, current:current.sales, base:previous.sales, diffAmount, diffPct });
+      }
+      if(target){
+        const foodTargetAmount = current.sales * target.food / 100;
+        const foodDiffAmount = current.food - foodTargetAmount;
+        const foodActualPct = current.food / current.sales * 100;
+        if(foodDiffAmount > 0){
+          foodRows.push({ brandKey, store, current:current.food, base:foodTargetAmount, actualPct:foodActualPct, targetPct:target.food,
+            diffAmount:foodDiffAmount, diffPt:foodActualPct-target.food });
+        }
+        const laborTargetAmount = current.sales * target.labor / 100;
+        const laborDiffAmount = current.labor - laborTargetAmount;
+        const laborActualPct = current.labor / current.sales * 100;
+        if(laborDiffAmount > 0){
+          laborRows.push({ brandKey, store, current:current.labor, base:laborTargetAmount, actualPct:laborActualPct, targetPct:target.labor,
+            diffAmount:laborDiffAmount, diffPt:laborActualPct-target.labor });
+        }
+      }
+    });
+  });
+
+  salesRows.sort((a,b)=>(a.diffPct-b.diffPct) || (a.diffAmount-b.diffAmount) || a.store.localeCompare(b.store, 'ja'));
+  foodRows.sort((a,b)=>(b.diffPt-a.diffPt) || (b.actualPct-a.actualPct) || (b.diffAmount-a.diffAmount) || a.store.localeCompare(b.store, 'ja'));
+  laborRows.sort((a,b)=>(b.diffPt-a.diffPt) || (b.actualPct-a.actualPct) || (b.diffAmount-a.diffAmount) || a.store.localeCompare(b.store, 'ja'));
+
+  const brandBadge = brandKey => `<span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background:${BRAND_META[brandKey].accent};color:#fff;">${BRAND_META[brandKey].label}</span>`;
+  const emptyRow = `<tr><td colspan="6" class="py-8 text-center" style="color:var(--text-dim);position:static;">該当店舗はありません</td></tr>`;
+  const salesTable = salesRows.length ? salesRows.map(r=>`<tr>
+    <td>${r.store}</td><td style="text-align:left;">${brandBadge(r.brandKey)}</td>
+    <td class="font-mono">${yen(r.base)}</td><td class="font-mono">${yen(r.current)}</td>
+    <td class="font-mono down">${yen(r.diffAmount)}</td><td class="font-mono down">${pct(r.diffPct)}</td>
+  </tr>`).join('') : emptyRow;
+  const costRows = rows => rows.length ? rows.map(r=>`<tr>
+    <td>${r.store}</td><td style="text-align:left;">${brandBadge(r.brandKey)}</td>
+    <td class="font-mono">${yen(r.base)} <span class="text-xs" style="color:var(--text-dim);">(${r.targetPct.toFixed(1)}%)</span></td>
+    <td class="font-mono">${yen(r.current)} <span class="text-xs" style="color:var(--text-dim);">(${r.actualPct.toFixed(1)}%)</span></td>
+    <td class="font-mono down">+${yen(r.diffAmount)}</td><td class="font-mono down">${pt(r.diffPt)}</td>
+  </tr>`).join('') : emptyRow;
+
+  const section = (title, description, count, header, body) => `<div class="surface rounded-xl p-5 mb-6 overflow-x-auto">
+    <div class="flex items-end justify-between gap-3 mb-4"><div><h3 class="font-semibold">${title}</h3><p class="text-xs mt-1" style="color:var(--text-dim);">${description}</p></div>
+    <span class="font-display text-2xl" style="color:var(--bad);">${count}<span class="text-sm ml-1">店舗</span></span></div>
+    <table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></div>`;
+
+  return `<div class="fade-in">
+    <div class="mb-6"><p class="text-xs uppercase tracking-widest" style="color:var(--bad);">Attention list</p>
+      <h2 class="font-display text-3xl mt-1">要注意店舗一覧</h2>
+      <p class="text-sm mt-2" style="color:var(--text-dim);">昨対割れ・原価超過・人件費超過を、差額と差率で確認できます。</p></div>
+    <div class="flex items-center gap-3 flex-wrap mb-5">
+      <div class="flex gap-2">
+        <div class="pill ${selectedBrand==='ALL'?'selected-CONA':''}" data-action="alerts-brand" data-brand="ALL">全ブランド</div>
+        <div class="pill ${selectedBrand==='CONA'?'selected-CONA':''}" data-action="alerts-brand" data-brand="CONA">CONA</div>
+        <div class="pill ${selectedBrand==='NAPOLIMAN'?'selected-NAPOLIMAN':''}" data-action="alerts-brand" data-brand="NAPOLIMAN">ナポリマン</div>
+      </div>
+      <div class="flex gap-2 flex-wrap">${['2026-04','2026-05','2026-06','2026-07'].map(m=>`<div class="pill ${month===m?'selected-CONA':''}" data-action="alerts-month" data-month="${m}">${monthLabel(m)}</div>`).join('')}</div>
+    </div>
+    ${section('売上が昨対を割っている店舗','昨対差率が悪い順に表示。',salesRows.length,
+      '<th style="text-align:left;">店舗</th><th style="text-align:left;">ブランド</th><th>前年売上</th><th>当年売上</th><th>不足額</th><th>昨対差</th>',salesTable)}
+    ${section('原価が目標値から超過している店舗','率差（目標との差pt）が大きい順に表示。',foodRows.length,
+      '<th style="text-align:left;">店舗</th><th style="text-align:left;">ブランド</th><th>目標額・率</th><th>実績額・率</th><th>超過額</th><th>率差</th>',costRows(foodRows))}
+    ${section('人件費が目標値から超過している店舗','率差（目標との差pt）が大きい順に表示。',laborRows.length,
+      '<th style="text-align:left;">店舗</th><th style="text-align:left;">ブランド</th><th>目標額・率</th><th>実績額・率</th><th>超過額</th><th>率差</th>',costRows(laborRows))}
+    <p class="text-xs" style="color:var(--text-dim);">※ 前年データまたは目標値がない店舗は、該当する一覧の判定対象外です。売上0円の月も除外しています。</p>
+  </div>`;
 }
 
 /* ============================= レンダリング：前年比 ============================= */
@@ -838,6 +926,8 @@ function render(){
   const root = document.getElementById('app-root');
   if(state.activeTab === 'yoy'){
     root.innerHTML = renderYoyTab();
+  } else if(state.activeTab === 'alerts'){
+    root.innerHTML = renderAlertsTab();
   } else {
     root.innerHTML = renderBrandTab(state.activeTab);
     requestAnimationFrame(()=> updateSimResults());
@@ -883,6 +973,14 @@ document.addEventListener('click', (e)=>{
   }
   else if(action === 'yoy-month'){
     state.yoy.month = el.dataset.month;
+    render();
+  }
+  else if(action === 'alerts-brand'){
+    state.alerts.brand = el.dataset.brand;
+    render();
+  }
+  else if(action === 'alerts-month'){
+    state.alerts.month = el.dataset.month;
     render();
   }
 });
