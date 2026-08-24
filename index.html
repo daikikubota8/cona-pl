@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>店舗PL管理ダッシュボード | CONA / ナポリマン</title>
+<title>店舗PL・QSC管理ダッシュボード | CONA / ナポリマン</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -51,6 +51,8 @@
   .tab-btn.active[data-brand="NAPOLIMAN"]{background:var(--tomato);}
   .tab-btn.active[data-brand="yoy"]{background:#3f6a8f;}
   .tab-btn.active[data-brand="alerts"]{background:var(--bad);}
+  .tab-btn.active[data-brand="qsc"]{background:#5a7d3f;}
+  .tab-btn.active[data-brand="fancle"]{background:#8a5a2b;}
   input[type="text"], input[type="number"], input[type="month"], select{
     background:var(--surface2); border:1px solid var(--line); color:var(--text);
     border-radius:.5rem; padding:.5rem .7rem; font-size:.875rem; width:100%;
@@ -106,13 +108,15 @@
   <div class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
     <div>
       <p class="text-xs tracking-widest uppercase" style="color:var(--gold);">Store P/L Monitor</p>
-      <h1 class="font-display text-2xl leading-tight">店舗PL管理ダッシュボード</h1>
+      <h1 class="font-display text-2xl leading-tight">店舗PL・QSC管理ダッシュボード</h1>
     </div>
     <nav class="flex gap-2 flex-wrap" id="main-tabs">
       <div class="tab-btn active" data-action="switch-tab" data-brand="CONA">CONA</div>
       <div class="tab-btn" data-action="switch-tab" data-brand="NAPOLIMAN">ナポリマン</div>
       <div class="tab-btn" data-action="switch-tab" data-brand="yoy">前年比</div>
       <div class="tab-btn" data-action="switch-tab" data-brand="alerts">要注意店舗</div>
+      <div class="tab-btn" data-action="switch-tab" data-brand="qsc">QSC</div>
+      <div class="tab-btn" data-action="switch-tab" data-brand="fancle">ふぁんくる</div>
     </nav>
   </div>
 </header>
@@ -318,7 +322,9 @@ let state = {
   activeTab: 'CONA',
   selectedStore: { CONA: null, NAPOLIMAN: null },
   yoy: { brand: 'CONA', month: '2026-05' },
-  alerts: { brand: 'ALL', month: '2026-07' }
+  alerts: { brand: 'ALL', month: '2026-07' },
+  qsc: { month: '2026-07' },
+  fancle: { month: '2026-07' }
 };
 // 初期選択店舗をセット
 for(const b of ['CONA','NAPOLIMAN']){
@@ -360,6 +366,169 @@ function metricValue(entry, key){
 function pctChange(cur, prev){
   if(cur === null || prev === null || prev === undefined || cur === undefined || prev === 0) return null;
   return ((cur - prev) / Math.abs(prev)) * 100;
+}
+
+/* ============================= QSC（アプリアンケート）データ ============================= */
+// 各値: [料理, ドリンク, 笑顔, 呼びやすさ, ラウンド意識, ご案内]  null=データなし
+const QSC_DATA = {"恵比寿": {"03": [24, 24, 25, 22, 24, 25], "04": [24, 25, 21, 22, 24, 25], "05": [23, 24, 21, 23, 24, 24], "06": [25.0, 23.7, 19.5, 18.4, 25, 23.7], "07": [24.1, 24.1, 23.2, 21.3, 25, 25]}, "錦糸町": {"03": [24, 25, 21, 24, 24, 25], "04": [24, 24, 21, 22, 24, 25], "05": [22, 24, 20, 24, 23, 24], "06": [24.3, 25.0, 20.7, 23.0, 24.3, 24.3], "07": [24.0, 23.5, 22.2, 23.5, 24, 24.5]}, "麻布十番": {"03": [24, 23, 20, 22, 24, 24], "04": [24, 23, 21, 21, 24, 25], "05": [23, 22, 21, 21, 25, 25], "06": [23.1, 22.1, 20.1, 15.4, 22.1, 24.0], "07": [25.0, 25.0, 21.3, 21.0, 25, 24.2]}, "横浜鶴屋町": {"03": [24, 23, 21, 22, 24, 23], "04": [24, 22, 21, 22, 25, 24], "05": [23, 22, 22, 22, 25, 25], "06": [21.9, 24.2, 20.0, 20.3, 24.2, 24.2], "07": [23.7, 19.7, 21.4, 23.0, 25, 23.7]}, "上野": {"03": [22, 24, 21, 23, 25, 24], "04": [23, 24, 20, 23, 24, 24], "05": [21, 24, 21, 21, 25, 25], "06": [19.5, 23.4, 20.9, 23.4, 25, 25], "07": [21.3, 21.3, 21.1, 22.6, 25, 25]}, "たまプラーザ": {"03": [23, 23, 20, 21, 24, 24], "04": [23, 24, 21, 22, 25, 24], "05": [23, 22, 20, 21, 24, 24], "06": [23.5, 24.6, 20.1, 21.3, 25, 23.5], "07": [23.6, 24.6, 21.5, 21.1, 24.6, 23.9]}, "蒲田": {"03": [22, 23, 20, 22, 24, 24], "04": [21, 23, 19, 22, 25, 23], "05": [24, 24, 19, 21, 24, 24], "06": [null, null, null, null, null, null], "07": [20.8, 23.3, 21.1, 24.2, 25, 24.2]}, "所沢": {"03": [20, 23, 19, 19, 25, 25], "04": [22, 23, 19, 22, 24, 24], "05": [24, 24, 19, 21, 24, 24], "06": [24.2, 22.5, 21.8, 22.5, 25, 24.2], "07": [22.7, 20.3, 18.8, 21.9, 24.2, 24.2]}, "立川": {"03": [21, 23, 22, 22, 24, 24], "04": [21, 25, 22, 21, 25, 24], "05": [23, 23, 22, 23, 25, 23], "06": [21.1, 21.1, 21.1, 23.7, 25, 25], "07": [21.7, 22.3, 20.4, 22.8, 24.5, 22.8]}, "津田沼": {"03": [23, 23, 20, 20, 23, 24], "04": [22, 23, 19, 22, 25, 23], "05": [23, 22, 21, 21, 24, 24], "06": [22.7, 22.7, 20.8, 21.0, 24.4, 22.7], "07": [20.9, 21.3, 19.5, 20.1, 24.2, 24.2]}, "渋谷宇田川町": {"03": [20, 24, 22, 23, 25, 23], "04": [23, 22, 20, 22, 25, 25], "05": [22, 24, 20, 23, 24, 24], "06": [21.5, 23.3, 18.5, 20.9, 23.3, 23.8], "07": [22.9, 24.0, 20.4, 22.9, 25, 24]}, "船橋": {"03": [20, 21, 21, 21, 25, 24], "04": [23, 23, 22, 23, 24, 24], "05": [24, 23, 20, 21, 23, 24], "06": [23.5, 24.0, 21.8, 22.4, 24.5, 24.0], "07": [22.9, 23.9, 21.4, 23.9, 24.5, 25]}, "新宿歌舞伎町": {"03": [23, 23, 21, 19, 23, 23], "04": [22, 22, 20, 20, 25, 25], "05": [20, 21, 17, 22, 24, 24], "06": [23.9, 23.9, 20.0, 21.7, 23.9, 23.9], "07": [19.4, 22.2, 20.4, 22.2, 25, 22.2]}, "町田": {"03": [20, 22, 18, 20, 21, 23], "04": [19, 23, 19, 19, 20, 22], "05": [23, 24, 20, 19, 24, 23], "06": [24.5, 23.6, 19.4, 21.3, 25, 24.5], "07": [23.9, 23.9, 20.5, 21.1, 25, 24.3]}, "柏": {"03": [23, 22, 20, 24, 25, 24], "04": [23, 22, 20, 21, 24, 24], "05": [19, 21, 19, 21, 23, 25], "06": [22.0, 25.0, 20.0, 22.0, 24.4, 23.8], "07": [20.5, 22.4, 20.9, 24.4, 24.4, 24.4]}, "大宮": {"03": [20, 22, 19, 19, 24, 22], "04": [22, 23, 21, 20, 25, 24], "05": [20, 23, 19, 23, 25, 24], "06": [21.6, 23.6, 19.8, 19.6, 25, 24.3], "07": [25.0, 23.7, 20.0, 21.7, 25, 25]}, "田町芝浦": {"03": [19, 22, 20, 21, 25, 24], "04": [22, 23, 20, 22, 23, 24], "05": [21, 20, 20, 24, 25, 25], "06": [19.8, 21.5, 20.3, 23.3, 23.8, 23.8], "07": [23.0, 24.3, 20.8, 22.4, 24.3, 25.0]}, "川崎": {"03": [19, 22, 20, 21, 25, 25], "04": [19, 22, 20, 22, 25, 24], "05": [22, 23, 19, 20, 24, 23], "06": [19.2, 24.0, 19.7, 22.1, 24.5, 25], "07": [21.3, 23.2, 19.5, 22.8, 24.6, 23.9]}, "新宿東南口": {"03": [20, 22, 19, 21, 23, 23], "04": [19, 21, 21, 21, 24, 23], "05": [19, 20, 18, 21, 25, 24], "06": [20.6, 20.6, 19.8, 21.9, 23.1, 23.1], "07": [21.1, 22.4, 19.7, 20.4, 25, 23.7]}, "京急蒲田": {"03": [17, 20, 20, 21, 24, 24], "04": [20, 21, 18, 20, 22, 23], "05": [20, 23, 19, 21, 23, 24], "06": [19.9, 22.4, 19.3, 25.0, 25, 23], "07": [21.0, 24.0, 19.8, 20.5, 22.5, 23.5]}, "溝の口": {"03": [19, 22, 24, 21, 22, 25], "04": [16, 21, 20, 23, 24, 24], "05": [20, 22, 21, 20, 24, 24], "06": [18.4, 20.6, 20.0, 20.6, 24.3, 24.3], "07": [20.3, 21.6, 20.4, 20.3, 25, 25]}, "西新宿一丁目": {"03": [18, 21, 20, 22, 23, 25], "04": [17, 24, 21, 21, 24, 25], "05": [18, 22, 20, 21, 23, 25], "06": [16.7, 23.7, 19.3, 22.4, 23.1, 24.4], "07": [18.9, 22.8, 18.8, 20.2, 23.7, 24.6]}, "横浜西口": {"03": [null, null, null, null, null, null], "04": [21, 20, 21, 23, 25, 25], "05": [16, 20, 20, 23, 24, 24], "06": [22.6, 21.8, 20.3, 24.2, 24.2, 23.4], "07": [20.6, 22.1, 23.2, 21.3, 25, 25]}};
+const QSC_THRESHOLDS = { dish:21, drink:22, smile:21, call:21, round:23, guide:24 };
+const QSC_MONTHS = ['2026-03','2026-04','2026-05','2026-06','2026-07'];
+function qscMonthKey(ym){ return ym.split('-')[1]; }
+function renderQscTab(){
+  const month = state.qsc.month;
+  const mk = qscMonthKey(month);
+  const monthIdx = QSC_MONTHS.indexOf(month);
+  const prevMonth = monthIdx > 0 ? QSC_MONTHS[monthIdx-1] : null;
+  const prevMk = prevMonth ? qscMonthKey(prevMonth) : null;
+  const rows = [];
+  Object.keys(QSC_DATA).forEach(store => {
+    const v = QSC_DATA[store][mk];
+    if(!v || v[0] === null) return;
+    const [dish, drink, smile, call, rnd, guide] = v;
+    const qAvg = (dish + drink) / 2;
+    const sAvg = (smile + call + rnd + guide) / 4;
+    const total = (dish + drink + smile + call + rnd + guide) / 6;
+    let prev = null;
+    if(prevMk){
+      const pv = QSC_DATA[store][prevMk];
+      if(pv && pv[0] !== null){
+        const [pd,pr,ps,pc,prd,pg] = pv;
+        prev = { dish:pd, drink:pr, smile:ps, call:pc, rnd:prd, guide:pg,
+                 qAvg:(pd+pr)/2, sAvg:(ps+pc+prd+pg)/4, total:(pd+pr+ps+pc+prd+pg)/6 };
+      }
+    }
+    rows.push({ store, dish, drink, smile, call, rnd, guide, qAvg, sAvg, total, prev });
+  });
+  rows.sort((a,b)=> (b.total-a.total) || (b.qAvg-a.qAvg) || a.store.localeCompare(b.store,'ja'));
+
+  const deltaTag = (cur, prv) => {
+    if(prv === null || prv === undefined) return '';
+    const d = cur - prv;
+    if(Math.abs(d) < 0.05) return `<div class="text-xs" style="color:var(--text-dim);">±0.0</div>`;
+    const up = d > 0;
+    return `<div class="text-xs" style="color:${up?'var(--good)':'var(--bad)'};">${up?'▲':'▼'}${Math.abs(d).toFixed(1)}</div>`;
+  };
+  const cell = (val, key, prv) => {
+    if(val === null || val === undefined) return `<td class="font-mono" style="color:var(--text-dim);">/</td>`;
+    const below = val < QSC_THRESHOLDS[key];
+    return `<td class="font-mono" style="vertical-align:top;color:${below?'var(--bad)':'var(--text)'};${below?'background:rgba(184,65,15,.08);':''}">${val.toFixed(1)}${deltaTag(val, prv)}</td>`;
+  };
+  const avgCell = (val, strong, prv) => `<td class="font-mono ${strong?'font-semibold':''}" style="vertical-align:top;${strong?'background:var(--surface2);':''}">${val.toFixed(1)}${deltaTag(val, prv)}</td>`;
+
+  const body = rows.map((r,i)=>`<tr>
+    <td class="font-mono" style="color:var(--text-dim);vertical-align:top;">${i+1}</td>
+    <td style="vertical-align:top;">${r.store}</td>
+    ${cell(r.dish,'dish', r.prev&&r.prev.dish)}${cell(r.drink,'drink', r.prev&&r.prev.drink)}${avgCell(r.qAvg,false, r.prev&&r.prev.qAvg)}
+    ${cell(r.smile,'smile', r.prev&&r.prev.smile)}${cell(r.call,'call', r.prev&&r.prev.call)}${cell(r.rnd,'round', r.prev&&r.prev.rnd)}${cell(r.guide,'guide', r.prev&&r.prev.guide)}${avgCell(r.sAvg,false, r.prev&&r.prev.sAvg)}
+    ${avgCell(r.total,true, r.prev&&r.prev.total)}
+  </tr>`).join('');
+
+  return `<div class="fade-in">
+    <div class="mb-6"><p class="text-xs uppercase tracking-widest" style="color:#5a7d3f;">QSC survey</p>
+      <h2 class="font-display text-3xl mt-1">QSC アプリアンケート結果</h2>
+      <p class="text-sm mt-2" style="color:var(--text-dim);">Q（提供スピード）とS（サービス）の詳細項目を店舗別に表示。連月平均が高い順に並びます。各数値下の▲▼は前月からの推移です。赤字は警告ライン未満の項目です。</p></div>
+    <div class="flex items-center gap-2 flex-wrap mb-5">
+      ${QSC_MONTHS.map(m=>`<div class="pill ${month===m?'selected-CONA':''}" data-action="qsc-month" data-month="${m}">${monthLabel(m)}</div>`).join('')}
+    </div>
+    <div class="surface rounded-xl p-5 overflow-x-auto">
+      <table>
+        <thead>
+          <tr>
+            <th rowspan="2" style="text-align:left;">順位</th>
+            <th rowspan="2" style="text-align:left;">店舗</th>
+            <th colspan="3" style="text-align:center; border-bottom:1px solid var(--line);">Q（提供スピード）</th>
+            <th colspan="5" style="text-align:center; border-bottom:1px solid var(--line);">S（サービス）</th>
+            <th rowspan="2">連月平均</th>
+          </tr>
+          <tr>
+            <th>料理</th><th>ドリンク</th><th>Q平均</th>
+            <th>笑顔</th><th>呼びやすさ</th><th>ラウンド</th><th>ご案内</th><th>S平均</th>
+          </tr>
+        </thead>
+        <tbody>${body || `<tr><td colspan="11" class="py-8 text-center" style="color:var(--text-dim);position:static;">この月のデータがありません</td></tr>`}</tbody>
+      </table>
+      <div class="mt-3 text-xs" style="color:var(--text-dim);">
+        警告ライン：料理&lt;21 ／ ドリンク&lt;22 ／ 笑顔&lt;21 ／ 呼びやすさ&lt;21 ／ ラウンド意識&lt;23 ／ ご案内&lt;24（未満は赤字）<br>
+        ※ このデータはCONAのアプリアンケート結果です。C（清潔さ）は元データに含まれないため、QとSのみ反映しています。「/」はその月のデータがない店舗です。
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============================= ふぁんくる（覆面調査）データ ============================= */
+// 各値: [接客, 料理, 清潔感, 提供スピード]  null=データなし
+const FANCLE_DATA = {"船橋": {"04": [86.0, 98.0, 90.0, 68.0], "05": [82.0, 100.0, 94.0, 96.0], "06": [80.0, 92.0, 86.0, 80.0], "07": [82.5, 82.5, 80.0, 65.0]}, "ナポリマン": {"04": [85.7, 84.3, 81.4, 71.4], "05": [96.7, 93.3, 93.3, 86.7], "06": [87.5, 85.0, 90.0, 85.0], "07": [57.5, 67.5, 60.0, 65.0]}, "立川": {"04": [92.9, 94.3, 88.6, 82.9], "05": [82.5, 95.0, 85.0, 85.0], "06": [82.5, 87.5, 80.0, 75.0], "07": [76.0, 76.0, 78.0, 68.0]}, "新宿歌舞伎町": {"04": [82.9, 92.9, 82.9, 62.9], "05": [80.0, 91.7, 85.0, 83.3], "06": [85.0, 94.0, 98.0, 90.0], "07": [78.8, 96.3, 90.0, 80.0]}, "たまプラーザ": {"04": [96.7, 85.0, 73.3, 73.3], "05": [81.1, 81.1, 83.3, 77.8], "06": [86.7, 91.7, 90.0, 90.0], "07": [96.0, 96.0, 100.0, 92.0]}, "錦糸町": {"04": [81.4, 84.3, 75.7, 82.9], "05": [90.0, 91.4, 75.7, 82.9], "06": [86.3, 83.8, 92.5, 77.5], "07": [85.0, 85.0, 68.8, 85.0]}, "田町芝浦": {"04": [75.0, 85.0, 85.0, 63.3], "05": [85.0, 95.0, 95.0, 95.0], "06": [81.4, 85.7, 84.3, 74.3], "07": [77.5, 85.0, 76.3, 80.0]}, "大宮": {"04": [82.0, 93.0, 82.0, 76.0], "05": [87.1, 92.9, 88.6, 77.1], "06": [81.4, 87.1, 85.7, 68.6], "07": [87.0, 88.0, 82.0, 84.0]}, "西新宿一丁目": {"04": [78.6, 85.7, 92.9, 74.3], "05": [87.5, 85.0, 86.3, 87.5], "06": [80.0, 84.3, 85.7, 68.6], "07": [90.0, 95.7, 84.3, 77.1]}, "横浜鶴屋町": {"04": [86.3, 81.3, 71.3, 80.0], "05": [90.0, 90.0, 82.2, 73.3], "06": [90.0, 90.0, 90.0, 70.0], "07": [70.0, 82.0, 72.0, 64.0]}, "町田": {"04": [62.5, 97.5, 70.0, 50.0], "05": [90.0, 96.0, 88.0, 80.0], "06": [85.0, 92.5, 76.3, 92.5], "07": [77.5, 97.5, 75.0, 80.0]}, "上野": {"04": [88.0, 93.0, 89.0, 86.0], "05": [78.9, 85.6, 78.9, 82.2], "06": [67.8, 82.2, 68.9, 62.2], "07": [78.3, 85.0, 73.3, 66.7]}, "渋谷宇田川町": {"04": [80.0, 92.9, 87.1, 68.6], "05": [72.9, 78.6, 71.4, 85.7], "06": [73.3, 91.7, 75.0, 83.3], "07": [67.8, 81.1, 67.8, 77.8]}, "柏": {"04": [77.5, 80.0, 78.8, 62.5], "05": [88.3, 83.3, 88.3, 83.3], "06": [82.9, 80.0, 77.1, 71.4], "07": [86.7, 86.7, 83.3, 73.3]}, "川崎": {"04": [75.6, 82.2, 74.4, 68.9], "05": [78.9, 84.4, 85.6, 71.1], "06": [83.8, 91.3, 83.8, 70.0], "07": [83.0, 87.0, 77.0, 74.0]}, "横浜西口": {"04": null, "05": [84.4, 90.0, 86.7, 68.9], "06": [68.3, 80.0, 76.7, 76.7], "07": [91.7, 91.7, 88.3, 83.3]}, "蒲田": {"04": [85.0, 81.7, 83.3, 83.3], "05": [71.4, 75.7, 70.0, 80.0], "06": null, "07": [84.0, 84.0, 76.0, 72.0]}, "恵比寿": {"04": [90.0, 92.2, 87.8, 91.1], "05": [80.0, 92.5, 82.5, 75.0], "06": [61.4, 65.7, 58.6, 62.9], "07": [90.0, 80.0, 72.5, 65.0]}, "麻布十番": {"04": [82.0, 90.0, 84.0, 88.0], "05": [56.7, 83.3, 83.3, 80.0], "06": [60.0, 82.5, 77.5, 70.0], "07": [80.0, 87.5, 82.5, 85.0]}, "所沢": {"04": [84.0, 78.0, 82.0, 60.0], "05": [65.7, 81.4, 74.3, 71.4], "06": [82.5, 85.0, 82.5, 80.0], "07": [78.0, 90.0, 66.0, 60.0]}, "新宿東南口": {"04": [67.5, 77.5, 95.0, 65.0], "05": [71.3, 78.8, 80.0, 60.0], "06": [70.0, 92.0, 94.0, 74.0], "07": [86.3, 95.0, 92.5, 70.0]}, "津田沼": {"04": [70.0, 83.3, 73.3, 73.3], "05": [90.0, 85.0, 87.5, 65.0], "06": [85.0, 78.3, 73.3, 60.0], "07": [72.5, 65.0, 62.5, 60.0]}, "溝の口": {"04": [66.0, 84.0, 70.0, 48.0], "05": [72.5, 82.5, 80.0, 75.0], "06": [85.6, 88.9, 84.4, 71.1], "07": [84.3, 78.6, 74.3, 68.6]}, "京急蒲田": {"04": [74.0, 58.0, 74.0, 68.0], "05": [84.0, 91.0, 86.0, 60.0], "06": [77.5, 82.5, 82.5, 70.0], "07": [80.0, 86.7, 75.0, 80.0]}};
+const FANCLE_MONTHS = ['2026-04','2026-05','2026-06','2026-07'];
+function fancleMonthKey(ym){ return ym.split('-')[1]; }
+function renderFancleTab(){
+  const month = state.fancle.month;
+  const mk = fancleMonthKey(month);
+  const monthIdx = FANCLE_MONTHS.indexOf(month);
+  const prevMonth = monthIdx > 0 ? FANCLE_MONTHS[monthIdx-1] : null;
+  const prevMk = prevMonth ? fancleMonthKey(prevMonth) : null;
+  const rows = [];
+  Object.keys(FANCLE_DATA).forEach(store => {
+    const v = FANCLE_DATA[store][mk];
+    if(!v) return;
+    const [cs, fd, cl, sp] = v;
+    const avg = (cs + fd + cl + sp) / 4;
+    let prev = null;
+    if(prevMk){
+      const pv = FANCLE_DATA[store][prevMk];
+      if(pv){ const [pcs,pfd,pcl,psp]=pv; prev = { cs:pcs, fd:pfd, cl:pcl, sp:psp, avg:(pcs+pfd+pcl+psp)/4 }; }
+    }
+    rows.push({ store, cs, fd, cl, sp, avg, prev });
+  });
+  rows.sort((a,b)=> (b.avg-a.avg) || a.store.localeCompare(b.store,'ja'));
+
+  const deltaTag = (cur, prv) => {
+    if(prv === null || prv === undefined) return '';
+    const d = cur - prv;
+    if(Math.abs(d) < 0.05) return `<div class="text-xs" style="color:var(--text-dim);">±0.0</div>`;
+    const up = d > 0;
+    return `<div class="text-xs" style="color:${up?'var(--good)':'var(--bad)'};">${up?'▲':'▼'}${Math.abs(d).toFixed(1)}</div>`;
+  };
+  // 評価尺度: ≦60 赤 / 60<<90 通常 / 90≦ 緑
+  const cell = (val, prv) => {
+    if(val === null || val === undefined) return `<td class="font-mono" style="color:var(--text-dim);">/</td>`;
+    let color = 'var(--text)', bg = '';
+    if(val <= 60){ color = 'var(--bad)'; bg = 'background:rgba(184,65,15,.10);'; }
+    else if(val >= 90){ color = 'var(--good)'; bg = 'background:rgba(58,122,64,.10);'; }
+    return `<td class="font-mono" style="vertical-align:top;color:${color};${bg}">${val.toFixed(1)}${deltaTag(val, prv)}</td>`;
+  };
+  const avgCell = (val, prv) => `<td class="font-mono font-semibold" style="vertical-align:top;background:var(--surface2);">${val.toFixed(1)}${deltaTag(val, prv)}</td>`;
+
+  const body = rows.map((r,i)=>`<tr>
+    <td class="font-mono" style="color:var(--text-dim);vertical-align:top;">${i+1}</td>
+    <td style="vertical-align:top;">${r.store}</td>
+    ${cell(r.cs, r.prev&&r.prev.cs)}${cell(r.fd, r.prev&&r.prev.fd)}${cell(r.cl, r.prev&&r.prev.cl)}${cell(r.sp, r.prev&&r.prev.sp)}${avgCell(r.avg, r.prev&&r.prev.avg)}
+  </tr>`).join('');
+
+  return `<div class="fade-in">
+    <div class="mb-6"><p class="text-xs uppercase tracking-widest" style="color:#8a5a2b;">Fancle survey</p>
+      <h2 class="font-display text-3xl mt-1">ふぁんくる 覆面調査結果</h2>
+      <p class="text-sm mt-2" style="color:var(--text-dim);">接客・料理・清潔感・提供スピードを店舗別に表示。連月平均が高い順に並びます。各数値下の▲▼は前月からの推移です。</p></div>
+    <div class="flex items-center gap-2 flex-wrap mb-5">
+      ${FANCLE_MONTHS.map(m=>`<div class="pill ${month===m?'selected-CONA':''}" data-action="fancle-month" data-month="${m}">${monthLabel(m)}</div>`).join('')}
+    </div>
+    <div class="surface rounded-xl p-5 overflow-x-auto">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left;">順位</th>
+            <th style="text-align:left;">店舗</th>
+            <th>接客</th><th>料理</th><th>清潔感</th><th>提供スピード</th><th>連月平均</th>
+          </tr>
+        </thead>
+        <tbody>${body || `<tr><td colspan="7" class="py-8 text-center" style="color:var(--text-dim);position:static;">この月のデータがありません</td></tr>`}</tbody>
+      </table>
+      <div class="mt-3 text-xs" style="color:var(--text-dim);">
+        評価尺度：接客・料理・清潔感＝すばらしい(100)〜良い(50)〜悪い(0)／提供スピード＝×20換算で(100)〜(60)〜(20)。<br>
+        <span style="color:var(--bad);">60以下＝赤</span> ／ <span style="color:var(--good);">90以上＝緑</span>。「/」はその月のデータがない店舗です。<br>
+        ※ ふぁんくる（覆面調査）は月次詳細が4月〜7月分のみ提供されていたため、3月は未反映です。
+      </div>
+    </div>
+  </div>`;
 }
 
 /* ============================= レンダリング：要注意店舗 ============================= */
@@ -928,6 +1097,10 @@ function render(){
     root.innerHTML = renderYoyTab();
   } else if(state.activeTab === 'alerts'){
     root.innerHTML = renderAlertsTab();
+  } else if(state.activeTab === 'qsc'){
+    root.innerHTML = renderQscTab();
+  } else if(state.activeTab === 'fancle'){
+    root.innerHTML = renderFancleTab();
   } else {
     root.innerHTML = renderBrandTab(state.activeTab);
     requestAnimationFrame(()=> updateSimResults());
@@ -981,6 +1154,14 @@ document.addEventListener('click', (e)=>{
   }
   else if(action === 'alerts-month'){
     state.alerts.month = el.dataset.month;
+    render();
+  }
+  else if(action === 'qsc-month'){
+    state.qsc.month = el.dataset.month;
+    render();
+  }
+  else if(action === 'fancle-month'){
+    state.fancle.month = el.dataset.month;
     render();
   }
 });
